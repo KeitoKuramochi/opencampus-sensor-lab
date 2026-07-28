@@ -132,6 +132,21 @@ header.hero {
 
 .hero .meta a { color: inherit; }
 
+.hero-survey-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 16px;
+  text-decoration: none;
+}
+
 /* ---------- 見出し・本文 ---------- */
 
 section { margin-top: 68px; }
@@ -518,6 +533,11 @@ td.mono {
 }
 
 .cta-box p { margin: 0 0 18px; color: var(--ink-soft); font-size: 0.9rem; }
+
+.cta-box.final-survey {
+  max-width: 700px;
+  margin: 56px auto 0;
+}
 
 .cta-button {
   display: inline-block;
