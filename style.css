@@ -1,0 +1,598 @@
+/* ============================================================
+   オープンキャンパス特別編:「300円センサーの中身」技術解説ページ
+   デザイントーン: 大学のオープンキャンパス来場者向け・信頼感のある技術色
+   - 地: 落ち着いた青灰色の紙白 / ダークは深い紺
+   - アクセント: エンジニアリングブルー
+   ============================================================ */
+
+:root {
+  --bg: #f7f9fb;
+  --panel: #eef2f6;
+  --ink: #16202a;
+  --ink-soft: #57626c;
+  --line: #dbe2e8;
+  --card: #ffffff;
+  --accent: #1f6fb2;
+  --accent-bg: #e5f0fa;
+
+  --c-amber: #c97f1a;
+  --c-purple: #8a4fd1;
+  --c-teal: #1f8f82;
+  --c-green: #3f9e56;
+  --c-sky: #3f8fce;
+  --c-coral: #c9497b;
+  --c-gold: #b8901f;
+
+  --pin-vcc: #c9463f;
+  --pin-gnd: #57626c;
+  --pin-sig: #1f8f82;
+
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1220;
+    --panel: #121b29;
+    --ink: #e8edf2;
+    --ink-soft: #9aa7b2;
+    --line: #223044;
+    --card: #121b29;
+    --accent: #6fb3e8;
+    --accent-bg: #12283b;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP",
+    system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.95;
+  font-size: 15.5px;
+  -webkit-font-smoothing: antialiased;
+  overflow-wrap: break-word;
+}
+
+main {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 20px 72px;
+}
+
+a { color: var(--accent); }
+
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+strong { font-weight: 700; }
+
+/* ---------- ヒーロー ---------- */
+
+header.hero {
+  border-bottom: 1px solid var(--line);
+  padding: 56px 20px 40px;
+  background: linear-gradient(180deg, var(--accent-bg), transparent 70%);
+}
+
+.hero-inner { max-width: 700px; margin: 0 auto; }
+
+.hero .kicker {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  margin-bottom: 14px;
+  font-weight: 700;
+}
+
+.hero h1 {
+  font-size: clamp(1.5rem, 5.2vw, 2rem);
+  line-height: 1.5;
+  font-weight: 800;
+  margin: 0 0 14px;
+  text-wrap: balance;
+}
+
+.hero .lead {
+  color: var(--ink-soft);
+  margin: 0 0 18px;
+  max-width: 38em;
+}
+
+.hero .price-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--mono);
+  font-weight: 700;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.hero .price-badge .yen { color: var(--accent); font-size: 1.15em; }
+
+.hero .meta {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  margin-top: 22px;
+  letter-spacing: 0.03em;
+}
+
+.hero .meta a { color: inherit; }
+
+/* ---------- 見出し・本文 ---------- */
+
+section { margin-top: 68px; }
+
+h1, h2, h3, .hero .lead, figcaption, li {
+  word-break: auto-phrase;
+}
+
+p { text-wrap: pretty; margin: 0 0 1.25em; }
+
+h2 {
+  font-size: 1.24rem;
+  line-height: 1.5;
+  font-weight: 800;
+  margin: 0 0 18px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  text-wrap: balance;
+}
+
+h2::before {
+  content: "";
+  flex: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  background: var(--sec, var(--accent));
+  transform: translateY(1px);
+}
+
+h2 .sec-no {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 1.0rem;
+  font-weight: 700;
+  margin: 32px 0 8px;
+}
+
+ul, ol { padding-left: 1.4em; margin: 0 0 1.25em; }
+li { margin-bottom: 0.45em; }
+
+code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: var(--panel);
+  border-radius: 5px;
+  padding: 1px 6px;
+}
+
+/* ---------- 写真 ---------- */
+
+figure.photo { margin: 24px 0; text-align: center; }
+
+figure.photo a.zoom {
+  display: inline-block;
+  max-width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+figure.photo img {
+  max-width: 100%;
+  max-height: 340px;
+  width: auto;
+  height: auto;
+  display: block;
+}
+
+figcaption {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-top: 8px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.photo-grid figure.photo { margin: 0; }
+
+@media (max-width: 540px) {
+  .photo-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- 注釈つき写真(分解写真にラベルを重ねる) ---------- */
+
+figure.annotated {
+  margin: 26px 0;
+}
+
+.annotate-wrap {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+.annotate-wrap img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.annotate-wrap svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.an-line {
+  stroke: var(--accent);
+  stroke-width: 3;
+  fill: none;
+}
+
+.an-dot {
+  fill: var(--accent);
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+.an-label-bg {
+  fill: rgba(255,255,255,0.92);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+/* ラベルの背景は写真に重ねる「付箋」なので常に白地。文字色もテーマに関係なく固定する */
+.an-label-text {
+  fill: #16202a;
+  font-family: inherit;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.an-label-sub {
+  fill: #57626c;
+  font-family: inherit;
+  font-size: 22px;
+}
+
+/* ---------- 図(インラインSVG) ---------- */
+
+figure.diagram {
+  margin: 26px 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px 14px 6px;
+}
+
+figure.diagram svg { width: 100%; height: auto; display: block; }
+figure.diagram figcaption { text-align: center; padding-bottom: 10px; }
+
+.dg-box { fill: var(--bg); stroke: var(--ink-soft); stroke-width: 1.4; }
+.dg-box-accent { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.4; }
+.dg-text { fill: var(--ink); font-family: inherit; font-size: 14px; font-weight: 700; }
+.dg-text-small { fill: var(--ink-soft); font-family: inherit; font-size: 11.5px; }
+.dg-text-accent { fill: var(--accent); font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; }
+.dg-arrow { stroke: var(--ink-soft); stroke-width: 1.8; fill: none; }
+.dg-arrowhead { fill: var(--ink-soft); }
+.dg-wire-out { stroke: var(--pin-sig); stroke-width: 3; fill: none; }
+.dg-wire-gnd { stroke: var(--pin-gnd); stroke-width: 3; fill: none; }
+.dg-wire-vcc { stroke: var(--pin-vcc); stroke-width: 3; fill: none; }
+
+/* ---------- ターミナル(シリアルモニタ再現) ---------- */
+
+.terminal {
+  background: #0d1117;
+  border-radius: 10px;
+  border: 1px solid #263140;
+  margin: 22px 0 8px;
+  overflow: hidden;
+}
+
+.terminal .terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  background: #161d27;
+  border-bottom: 1px solid #263140;
+}
+
+.terminal .terminal-bar .terminal-dot {
+  flex: none;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #3a4552;
+}
+
+.terminal .terminal-bar .label {
+  margin-left: 8px;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: #7c8a9a;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.terminal pre {
+  margin: 0;
+  padding: 16px 18px 18px;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  line-height: 1.85;
+  color: #c9d6e3;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.terminal .btn { color: #6fb3e8; }
+.terminal .code { color: #8fd18a; }
+.terminal .rem { color: #6a7684; }
+
+.terminal-note {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 0 0 26px;
+}
+
+/* ---------- テーブル ---------- */
+
+.table-wrap { overflow-x: auto; margin: 24px 0; }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+
+th, td {
+  border: 1px solid var(--line);
+  padding: 7px 14px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+th { background: var(--panel); font-size: 0.78rem; }
+
+td.mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.82rem;
+}
+
+.chip {
+  display: inline-block;
+  width: 11px; height: 11px;
+  border-radius: 3px;
+  margin-right: 8px;
+  vertical-align: baseline;
+}
+
+/* ---------- 補足ボックス ---------- */
+
+.note-box {
+  background: var(--panel);
+  border-left: 3px solid var(--c-amber);
+  border-radius: 0 10px 10px 0;
+  padding: 16px 20px;
+  margin: 24px 0;
+  font-size: 0.9rem;
+}
+
+.note-box .note-title { font-weight: 700; margin-bottom: 4px; }
+
+/* ---------- センサーギャラリー ---------- */
+
+.sensor-cat {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin: 36px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--line);
+}
+
+.sensor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0 0 8px;
+}
+
+@media (max-width: 480px) {
+  .sensor-grid { grid-template-columns: 1fr; }
+}
+
+.sensor-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.sensor-card .thumb {
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+}
+
+.sensor-card .thumb img {
+  max-width: 88%;
+  max-height: 88%;
+  object-fit: contain;
+}
+
+.sensor-card h4 {
+  margin: 0 0 4px;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.sensor-card .sense {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 0 0 6px;
+  line-height: 1.7;
+}
+
+.sensor-card .use {
+  font-size: 0.78rem;
+  color: var(--accent);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.sensor-card .use::before {
+  content: "→ ";
+}
+
+/* ---------- CTA / アンケート ---------- */
+
+.cta-box {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 26px 24px;
+  margin: 26px 0;
+  text-align: center;
+}
+
+.cta-box p { margin: 0 0 18px; color: var(--ink-soft); font-size: 0.9rem; }
+
+.cta-button {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 13px 30px;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 6px 18px rgba(31, 111, 178, 0.28);
+}
+
+.cta-button:hover { opacity: 0.92; }
+
+.survey-preview {
+  text-align: left;
+  background: var(--panel);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin: 18px 0;
+  font-size: 0.84rem;
+}
+
+.survey-preview ol { margin: 8px 0 0; padding-left: 1.3em; }
+.survey-preview li { margin-bottom: 6px; color: var(--ink-soft); }
+
+/* ---------- フッター ---------- */
+
+footer {
+  border-top: 1px solid var(--line);
+  margin-top: 84px;
+  padding: 28px 20px 44px;
+}
+
+.footer-inner {
+  max-width: 700px;
+  margin: 0 auto;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.footer-inner a { color: var(--ink-soft); }
+
+/* ---------- 目次(フローティング・ジャンプナビ) ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+html { scroll-padding-top: 24px; }
+
+#jumpnav { position: fixed; right: 20px; bottom: 20px; z-index: 30; }
+
+#jumpnav summary {
+  list-style: none;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.16);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+
+#jumpnav summary::-webkit-details-marker { display: none; }
+
+.jumpnav-dots { display: grid; grid-template-columns: repeat(2,1fr); gap: 4px; }
+.jumpnav-dots span { width: 8px; height: 8px; border-radius: 2.5px; }
+
+#jumpnav nav {
+  position: absolute;
+  right: 0; bottom: 64px;
+  width: 230px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 12px 34px rgba(0,0,0,0.22);
+  padding: 8px;
+  display: flex; flex-direction: column; gap: 1px;
+  animation: jumpnavIn 160ms ease-out;
+}
+
+@keyframes jumpnavIn {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+#jumpnav nav a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 8px;
+  color: var(--ink); font-size: 0.83rem; text-decoration: none;
+}
+
+#jumpnav nav a:hover { background: var(--panel); }
+
+#jumpnav nav .dot { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+
+@media (max-width: 520px) {
+  #jumpnav { right: 14px; bottom: 14px; }
+  #jumpnav nav { width: 208px; }
+}

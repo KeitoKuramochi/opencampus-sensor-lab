@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>300円センサーの中身を技術解説 | オープンキャンパス特別編</title>
+<meta name="description" content="100円ショップの300円センサーを分解し、赤外線受信・ESP32・Bluetoothの仕組みを技術目線で解説。オープンキャンパス来場者向けのミニ講座ページ。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="300円センサーの中身を技術解説 | オープンキャンパス特別編">
+<meta property="og:description" content="100円ショップの300円センサーを分解し、赤外線受信・ESP32・Bluetoothの仕組みを技術目線で解説するミニ講座ページ。">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<details id="jumpnav">
+  <summary aria-label="目次を開く">
+    <span class="jumpnav-dots" aria-hidden="true">
+      <span style="background:var(--c-amber)"></span><span style="background:var(--c-teal)"></span>
+      <span style="background:var(--c-sky)"></span><span style="background:var(--c-coral)"></span>
+    </span>
+  </summary>
+  <nav aria-label="目次">
+    <a href="#find"><span class="dot" style="background:var(--c-amber)"></span>300円のセンサー</a>
+    <a href="#teardown"><span class="dot" style="background:var(--c-purple)"></span>分解してみる</a>
+    <a href="#wiring"><span class="dot" style="background:var(--c-teal)"></span>ESP32への配線</a>
+    <a href="#serial"><span class="dot" style="background:var(--c-green)"></span>受信コードを見る</a>
+    <a href="#esp32"><span class="dot" style="background:var(--accent)"></span>ESP32ってなに?</a>
+    <a href="#wireless"><span class="dot" style="background:var(--c-sky)"></span>無線の違い</a>
+    <a href="#gallery"><span class="dot" style="background:var(--c-coral)"></span>他のセンサー</a>
+    <a href="#next"><span class="dot" style="background:var(--accent)"></span>もっと知るには</a>
+    <a href="#survey"><span class="dot" style="background:var(--c-gold)"></span>アンケート</a>
+  </nav>
+</details>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="kicker">オープンキャンパス特別編 ・ 技術解説ミニ講座</div>
+    <h1>その辺の300円グッズ、開けたらマイコンの教材だった</h1>
+    <div class="price-badge"><span class="yen">300円</span>の赤外線センサーから</div>
+    <p class="lead">
+      展示しているリズムゲームの中身は、100円ショップの<strong>リモコン式LEDライト</strong>と<strong>マイコン(ESP32)</strong>だけ。このページでは「なぜ動くのか」を、赤外線センサー・配線・プログラム・無線通信という<strong>技術の目線</strong>で分解して説明します。スマホでこのページを見ながら、目の前の実機と見比べてみてください。
+    </p>
+    <div class="meta">情報工学・電子工学に興味がある人向けのミニ講座 ・ <a href="https://github.com/KeitoKuramochi/sensor_infrared" target="_blank" rel="noopener">制作の全過程はこちら(GitHub)</a></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============================================================ 1. 100均で見つけた300円のセンサー ============================================================ -->
+  <section id="find" style="--sec: var(--c-amber)">
+    <h2><span class="sec-no">01</span>100円ショップで見つけた「300円のセンサー」</h2>
+    <p>
+      展示の出発点はこれです。100円ショップの売り場に吊るされていた、リモコンで色が変わるLEDライト。税込330円。おもちゃとして売られていますが、<strong>電子工学の目で見ると「マイコン教材そのもの」</strong>です。
+    </p>
+    <ul>
+      <li>リモコンのボタンを押すと色が変わる → <strong>赤外線でデジタル信号をやりとりしている</strong></li>
+      <li>光る部分がある → <strong>LED(発光ダイオード)という電子部品が入っている</strong></li>
+      <li>ボタンが12個以上ある → <strong>1個300円で12種類以上の信号パターンが手に入る</strong></li>
+    </ul>
+    <p>
+      「300円で技術が詰まったセンサーが買える」——ここに気づくと、100円ショップの見え方が変わります。
+    </p>
+
+    <div class="photo-grid">
+      <figure class="photo">
+        <a class="zoom" href="images/package-light.jpg" target="_blank" rel="noopener">
+          <img src="images/package-light.jpg" alt="売り場のリモコンライト(イルミネーション)のパッケージ。税込330円" loading="lazy">
+        </a>
+        <figcaption>今回の主役。「リモコンライト[イルミネーション]」税込330円</figcaption>
+      </figure>
+      <figure class="photo">
+        <a class="zoom" href="images/remote.jpg" target="_blank" rel="noopener">
+          <img src="images/remote.jpg" alt="付属のリモコン。ON/OFF/Modeボタンと12色のカラーボタンが並んでいる" loading="lazy">
+        </a>
+        <figcaption>付属のリモコン。12色のカラーボタン+ON/OFF/Mode</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================================================ 2. 分解してみる(注釈付き) ============================================================ -->
+  <section id="teardown" style="--sec: var(--c-purple)">
+    <h2><span class="sec-no">02</span>分解してみると、こうなっていた</h2>
+    <p>
+      ケースを開けると、小さな基板が1枚。これが「マイコン教材」としての正体です。基板の上には<strong>2つの重要な部品</strong>が載っています。
+    </p>
+
+    <figure class="annotated">
+      <div class="annotate-wrap">
+        <img src="images/led-pcb.jpg" alt="分解した基板。左に赤外線受信部、中央にRGB LEDが載っている">
+        <svg viewBox="0 0 1400 1050" role="img" aria-label="赤外線受信部とRGB LEDの位置を示す注釈図">
+          <line class="an-line" x1="180" y1="96" x2="498" y2="438"/>
+          <circle class="an-dot" cx="504" cy="462" r="11"/>
+          <rect class="an-label-bg" x="50" y="18" width="270" height="78" rx="10"/>
+          <text class="an-label-text" x="72" y="54">赤外線受信部</text>
+          <text class="an-label-sub" x="72" y="82">(センサー本体)</text>
+
+          <line class="an-line" x1="1090" y1="469" x2="700" y2="592"/>
+          <circle class="an-dot" cx="672" cy="599" r="11"/>
+          <rect class="an-label-bg" x="1090" y="430" width="270" height="78" rx="10"/>
+          <text class="an-label-text" x="1112" y="466">RGB LED</text>
+          <text class="an-label-sub" x="1112" y="494">(発光部)</text>
+        </svg>
+      </div>
+      <figcaption>基板の拡大(クリックで別タブ表示)。黒いドームが「光を受け取るセンサー」、中央のチップが「光を出す部品」</figcaption>
+    </figure>
+
+    <p>
+      この2つは、電子工学的には正反対の役割です。
+    </p>
+    <ul>
+      <li><strong>赤外線受信部</strong> — 目に見えない赤外線(光)を受け取り、電気信号に変換する<strong>センサー</strong>。型番は<code>VS838</code>という汎用パーツで、テレビやエアコンのリモコン受信部と同じ仕組みです</li>
+      <li><strong>RGB LED</strong> — 電気信号を受け取って光に変換する<strong>アクチュエータ(出力側の部品)</strong>。赤・緑・青の光の量を変えることで好きな色を作れます</li>
+    </ul>
+    <p>
+      「センサーで受け取る」→「マイコンで判断する」→「アクチュエータで出力する」。これは電子工学のほぼすべての製品に共通する基本パターンです。
+    </p>
+  </section>
+
+  <!-- ============================================================ 3. ESP32への配線 ============================================================ -->
+  <section id="wiring" style="--sec: var(--c-teal)">
+    <h2><span class="sec-no">03</span>技術解説:ここをマイコンにつなぐと受信できる</h2>
+    <p>
+      分解した基板から、赤外線受信部(VS838)の足を3本取り出し、マイコン(ESP32)につなぎます。配線はこれだけです。
+    </p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 680 250" role="img" aria-label="配線図: VS838のOUTをESP32のGPIO27へ、GNDをGNDへ、VCCを3V3へ接続">
+        <rect class="dg-box" x="20" y="30" width="200" height="185" rx="10"/>
+        <text class="dg-text" x="120" y="58" text-anchor="middle">赤外線受信部</text>
+        <text class="dg-text-small" x="120" y="76" text-anchor="middle">VS838(ドーム正面から見て)</text>
+        <circle class="dg-box-accent" cx="120" cy="120" r="28"/>
+        <line class="dg-wire-out" x1="100" y1="148" x2="100" y2="175"/>
+        <line class="dg-wire-gnd" x1="120" y1="148" x2="120" y2="175"/>
+        <line class="dg-wire-vcc" x1="140" y1="148" x2="140" y2="175"/>
+        <text class="dg-text-small" x="100" y="195" text-anchor="middle">OUT</text>
+        <text class="dg-text-small" x="120" y="212" text-anchor="middle">GND</text>
+        <text class="dg-text-small" x="140" y="195" text-anchor="middle">VCC</text>
+        <path class="dg-wire-out" d="M 230 90 C 320 90, 360 90, 448 90"/>
+        <path class="dg-wire-gnd" d="M 230 123 C 320 123, 360 123, 448 123"/>
+        <path class="dg-wire-vcc" d="M 230 156 C 320 156, 360 156, 448 156"/>
+        <text class="dg-text-small" x="339" y="82" text-anchor="middle">OUT(信号)</text>
+        <text class="dg-text-small" x="339" y="115" text-anchor="middle">GND(マイナス)</text>
+        <text class="dg-text-small" x="339" y="148" text-anchor="middle">VCC(電源)</text>
+        <rect class="dg-box-accent" x="455" y="30" width="205" height="185" rx="10"/>
+        <text class="dg-text" x="557" y="58" text-anchor="middle">ESP32</text>
+        <text class="dg-text-small" x="470" y="95" text-anchor="start">● GPIO27(信号を読む足)</text>
+        <text class="dg-text-small" x="470" y="128" text-anchor="start">● GND</text>
+        <text class="dg-text-small" x="470" y="161" text-anchor="start">● 3V3(3.3Vの電源)</text>
+        <text class="dg-text-small" x="557" y="198" text-anchor="middle">プログラムはArduino IDEで書き込む</text>
+      </svg>
+      <figcaption>配線図。VS838の OUT → GPIO27、GND → GND、VCC → 3V3 の3本だけ</figcaption>
+    </figure>
+
+    <div class="note-box">
+      <div class="note-title">💡 これは「センサーの基本パターン」</div>
+      実は、世の中の多くのセンサーモジュールは<strong>電源(VCC)・グラウンド(GND)・信号(OUT)の3本</strong>という同じ構造でできています。このページの後半で紹介する人感センサーや距離センサーも、ほとんどが同じ3本パターンです。「1つ覚えれば、他のセンサーもだいたい読める」——電子工学の面白いところです。
+    </div>
+  </section>
+
+  <!-- ============================================================ 4. シリアルモニタで受信コードを見る ============================================================ -->
+  <section id="serial" style="--sec: var(--c-green)">
+    <h2><span class="sec-no">04</span>実際に受信してみる:「シリアルモニタ」という画面</h2>
+    <p>
+      配線が終わったら、Arduino IDE(マイコン用の無料プログラミングソフト)で受信プログラムを書き込みます。Arduino IDEには<strong>「シリアルモニタ」</strong>という機能があり、マイコンが受け取ったデータをリアルタイムでPCの画面に表示できます。リモコンのボタンを1つずつ押すと、こんな出力が得られます。
+    </p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span>
+        <span class="label">Arduino IDE — シリアルモニタ</span>
+      </div>
+      <pre><span class="rem">IRrecv: receive pin = GPIO27, ready.</span>
+<span class="btn">[ボタン: 赤]</span>   受信コード <span class="code">0x1FE20DF</span>
+<span class="btn">[ボタン: 緑]</span>   受信コード <span class="code">0x1FEA05F</span>
+<span class="btn">[ボタン: 青]</span>   受信コード <span class="code">0x1FE609F</span>
+<span class="btn">[ボタン: 黄]</span>   受信コード <span class="code">0x1FE50AF</span>
+<span class="btn">[ボタン: ON]</span>   受信コード <span class="code">0x1FE48B7</span></pre>
+    </div>
+    <p class="terminal-note">
+      ※実際にシリアルモニタで確認できた値をもとに再現した表示です。ボタンごとに異なる16進数のコードが送られてくるのが分かります。
+    </p>
+
+    <p>
+      ボタン1つ = 決まった16進数のコード、という<strong>対応表</strong>が作れれば、あとはプログラムで「赤が来たら◯◯する」のように自由に処理できます。実際に取得した対応表の一部がこちらです。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ボタン</th><th>受信コード</th></tr></thead>
+        <tbody>
+          <tr><td>ON</td><td class="mono">0x1FE48B7</td></tr>
+          <tr><td>OFF</td><td class="mono">0x1FE58A7</td></tr>
+          <tr><td><span class="chip" style="background:#d33b30"></span>赤</td><td class="mono">0x1FE20DF</td></tr>
+          <tr><td><span class="chip" style="background:#2fa85a"></span>緑</td><td class="mono">0x1FEA05F</td></tr>
+          <tr><td><span class="chip" style="background:#3a5fe0"></span>青</td><td class="mono">0x1FE609F</td></tr>
+          <tr><td><span class="chip" style="background:#cbc72e"></span>黄</td><td class="mono">0x1FE50AF</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================================================ 5. ESP32ってなに ============================================================ -->
+  <section id="esp32" style="--sec: var(--accent)">
+    <h2><span class="sec-no">05</span>そもそも、ESP32ってなに?</h2>
+    <p>
+      <strong>マイコン(マイクロコントローラー)</strong>とは、「センサーの値を読む」「計算する」「部品を動かす」を1枚の基板でこなす、小さなコンピュータです。パソコンと違ってOSは動かず、書き込んだプログラムを電源が入っている間ずっとループ実行する、というシンプルな仕組みで動いています。
+    </p>
+    <p>
+      今回使っているスターターキットの基本は<strong>Arduino UNO R3</strong>という定番マイコンボードですが、今回はその発展版にあたる<strong>ESP32</strong>を採用しました。理由は明快です。
+    </p>
+    <ul>
+      <li><strong>WiFiとBluetoothを最初から内蔵</strong>している(UNO R3には無線機能がない)</li>
+      <li>それでも価格は1,000〜2,000円程度と手頃</li>
+      <li>Arduino IDEでほぼ同じ書き方のプログラムが動く(学習した知識がそのまま使える)</li>
+    </ul>
+
+    <div class="photo-grid">
+      <figure class="photo">
+        <a class="zoom" href="images/uno-r3.jpg" target="_blank" rel="noopener">
+          <img src="images/uno-r3.jpg" alt="スターターキットに入っているArduino UNO R3本体" loading="lazy">
+        </a>
+        <figcaption>キットの基本形、Arduino UNO R3</figcaption>
+      </figure>
+      <figure class="photo">
+        <a class="zoom" href="images/esp32-oled.jpg" target="_blank" rel="noopener">
+          <img src="images/esp32-oled.jpg" alt="OLEDディスプレイ付きのESP32開発ボード" loading="lazy">
+        </a>
+        <figcaption>今回使ったESP32(画面付きタイプ)</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================================================ 6. 無線の違い ============================================================ -->
+  <section id="wireless" style="--sec: var(--c-sky)">
+    <h2><span class="sec-no">06</span>赤外線・WiFi・Bluetooth、無線の使い分け</h2>
+    <p>
+      この工作の中には、実は<strong>3種類の無線</strong>が登場しています。それぞれ得意・不得意が違うので、使い分けを知っておくと電子工作の見通しが良くなります。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>方式</th><th>たとえるなら</th><th>特徴</th><th>この工作での役目</th></tr></thead>
+        <tbody>
+          <tr><td>赤外線(IR)</td><td>光で送る手紙</td><td>一直線に見えている範囲だけ。準備は不要</td><td>リモコン → ESP32</td></tr>
+          <tr><td>WiFi</td><td>郵便局経由の宅配</td><td>ルーターの電波が届く範囲。SSID/パスワードの設定が必要</td><td>最初はこれでPCに送信</td></tr>
+          <tr><td>Bluetooth(BLE)</td><td>トランシーバーで直接話す</td><td>数m〜数十m、機器同士が直接。ペアリング操作なしで自動接続</td><td>最終的にこちらへ乗り換え</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      最初はWiFi経由でPCにボタン情報を送る構成でしたが、専用のWiFiルーターを用意する手間が発生していました。作り直す中で「WiFiを使わなくても、Bluetooth(BLE)で直接PCに送れる」と分かり、切り替えたところ<strong>ルーターも設定も不要</strong>になりました。ESP32はこの3種類の無線を1枚の基板でまかなえる、というのも小型マイコンの強みです。
+    </p>
+  </section>
+
+  <!-- ============================================================ 7. 他のセンサー紹介ギャラリー ============================================================ -->
+  <section id="gallery" style="--sec: var(--c-coral)">
+    <h2><span class="sec-no">07</span>他にもこんなセンサーがある</h2>
+    <p>
+      今回使った赤外線受信部は、電子工作の世界にある無数のセンサーのうちの1つです。同じスターターキットに入っている他のパーツを見てみましょう。<strong>「何を感じ取るか」「どこで使われているか」</strong>に注目すると、身の回りの家電やスマホの仕組みが見えてきます。
+    </p>
+
+    <div class="sensor-cat">環境をセンシングする</div>
+    <div class="sensor-grid">
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/pir.jpg" alt="人感センサーPIR" loading="lazy"></div>
+        <h4>人感センサー(PIR)</h4>
+        <p class="sense">人の体が出す熱(赤外線)を検知する</p>
+        <p class="use">自動ドア・防犯ライト・トイレの自動洗浄</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/dht11.jpg" alt="DHT11温湿度センサー" loading="lazy"></div>
+        <h4>温湿度センサー(DHT11)</h4>
+        <p class="sense">気温と湿度を数値で測る</p>
+        <p class="use">エアコンの自動制御・家庭菜園の見守り</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/cds.jpg" alt="フォトレジスタCdSセル" loading="lazy"></div>
+        <h4>光センサー(CdSセル)</h4>
+        <p class="sense">明るさ(光の量)を電気の変化に変える</p>
+        <p class="use">暗くなると自動で点く街灯・カーテンの自動制御</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/rain.jpg" alt="雨滴水位センサー" loading="lazy"></div>
+        <h4>雨滴・水位センサー</h4>
+        <p class="sense">水に濡れたか・水の高さを検知</p>
+        <p class="use">洗濯物の雨警報・植木鉢の水切れ通知</p>
+      </div>
+    </div>
+
+    <div class="sensor-cat">動き・距離をセンシングする</div>
+    <div class="sensor-grid">
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/ultrasonic.jpg" alt="超音波距離センサーHC-SR04" loading="lazy"></div>
+        <h4>超音波距離センサー</h4>
+        <p class="sense">音の反射時間から距離を測る(コウモリと同じ原理)</p>
+        <p class="use">自動ドア・車の後退警告・自動水栓</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/gyro.jpg" alt="ジャイロ加速度センサーモジュール" loading="lazy"></div>
+        <h4>ジャイロ・加速度センサー</h4>
+        <p class="sense">傾きや動きの速さを検知</p>
+        <p class="use">スマホの画面回転・ゲーム機のモーション操作・ドローンの姿勢制御</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/encoder.jpg" alt="ロータリーエンコーダーモジュール" loading="lazy"></div>
+        <h4>ロータリーエンコーダー</h4>
+        <p class="sense">つまみの回転方向と回転数を検知</p>
+        <p class="use">音量ノブ・3Dプリンタの位置決め</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/joystick.jpg" alt="ジョイスティックモジュール" loading="lazy"></div>
+        <h4>ジョイスティックモジュール</h4>
+        <p class="sense">レバーのX/Y方向の傾きを検知</p>
+        <p class="use">ゲームコントローラー・ロボットの操作</p>
+      </div>
+    </div>
+
+    <div class="sensor-cat">通信・記録する</div>
+    <div class="sensor-grid">
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/ir-receiver-module.jpg" alt="赤外線受信モジュール" loading="lazy"></div>
+        <h4>赤外線受信モジュール</h4>
+        <p class="sense">今回の展示と同じ仕組みの汎用パーツ</p>
+        <p class="use">テレビ・エアコンなど家電のリモコン受信部</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/rfid.jpg" alt="RFID-RC522モジュール" loading="lazy"></div>
+        <h4>RFIDリーダー</h4>
+        <p class="sense">ICカードに埋め込まれた情報を近距離無線で読み取る</p>
+        <p class="use">交通系ICカード・学生証・キーレスエントリー</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/sound.jpg" alt="サウンドセンサーモジュール" loading="lazy"></div>
+        <h4>音センサー</h4>
+        <p class="sense">周囲の音の大きさを検知</p>
+        <p class="use">音に反応して光るライト・防犯ブザー</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/rtc.jpg" alt="RTCモジュールDS1307" loading="lazy"></div>
+        <h4>RTCモジュール(時計IC)</h4>
+        <p class="sense">電源を切っても現在時刻を覚えている</p>
+        <p class="use">目覚まし時計・記録のタイムスタンプ</p>
+      </div>
+    </div>
+
+    <div class="sensor-cat">センサーだけじゃない:表示・出力パーツも</div>
+    <div class="sensor-grid">
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/lcd.jpg" alt="LCD1602液晶ディスプレイ" loading="lazy"></div>
+        <h4>LCD1602液晶ディスプレイ</h4>
+        <p class="sense">文字を2行×16文字で表示できる</p>
+        <p class="use">電子レンジ・券売機の文字表示</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/servo.jpg" alt="サーボモーターSG90" loading="lazy"></div>
+        <h4>サーボモーター</h4>
+        <p class="sense">指定した角度にピタッと動く</p>
+        <p class="use">ロボットの関節・自動ドアのロック機構</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/led-matrix.jpg" alt="LEDドットマトリクス8x8" loading="lazy"></div>
+        <h4>LEDドットマトリクス</h4>
+        <p class="sense">点の集まりで簡単な絵や文字を表示</p>
+        <p class="use">電車の行き先案内・電子掲示板</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/seven-segment.jpg" alt="7セグメントLED4桁" loading="lazy"></div>
+        <h4>7セグメントLED</h4>
+        <p class="sense">決まった形の光を組み合わせて数字を表示</p>
+        <p class="use">電卓・デジタル時計・体温計</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 8. まとめ+CTA ============================================================ -->
+  <section id="next" style="--sec: var(--accent)">
+    <h2><span class="sec-no">08</span>今日見たものは、ほんの入り口</h2>
+    <p>
+      300円のセンサー1つの中に、「電子回路」「プログラミング」「無線通信」という3つの技術が詰まっていました。今日紹介したのは、身の回りの家電やスマホに使われている技術のほんの一部です。
+    </p>
+    <p>
+      工学系・情報系の学科では、こうした<strong>センサー・電子回路・プログラミング・通信の仕組み</strong>を体系的に学び、自分の手でものを動かせるようになります。「仕組みが気になる」と思ったら、それはもう向いている証拠です。
+    </p>
+    <div class="cta-box">
+      <p>もっと知りたくなったら、制作の全過程(配線・プログラム・詰まったところ)をブログ形式でも公開しています。</p>
+      <a class="cta-button" href="https://sensor-infrared.vercel.app/" target="_blank" rel="noopener">制作記事を読む →</a>
+    </div>
+  </section>
+
+  <!-- ============================================================ 9. アンケート ============================================================ -->
+  <section id="survey" style="--sec: var(--c-gold)">
+    <h2><span class="sec-no">09</span>来場者アンケート</h2>
+    <p>
+      今日の展示はどうでしたか?今後の展示づくりの参考にするので、1分ほどアンケートにご協力ください。
+    </p>
+    <div class="cta-box">
+      <p>スマホでそのまま回答できます</p>
+      <a class="cta-button" href="https://forms.gle/REPLACE_WITH_YOUR_FORM_LINK" target="_blank" rel="noopener">アンケートに答える →</a>
+      <div class="survey-preview">
+        質問はこんな内容です:
+        <ol>
+          <li>あなたの学年は?</li>
+          <li>今日の展示(センサー工作の技術解説)は面白かったですか?</li>
+          <li>工学系・情報系の学科への興味は、今日で変わりましたか?</li>
+          <li>一番印象に残った技術・パーツはどれですか?</li>
+          <li>このページの説明は分かりやすかったですか?</li>
+          <li>感想・質問があれば自由にどうぞ</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <p>作: <a href="https://github.com/KeitoKuramochi" target="_blank" rel="noopener">KeitoKuramochi</a> — オープンキャンパス展示用の技術解説ページです。制作の全過程は<a href="https://github.com/KeitoKuramochi/sensor_infrared" target="_blank" rel="noopener">こちらのリポジトリ</a>で公開しています。</p>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('#jumpnav nav a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      document.getElementById('jumpnav').removeAttribute('open');
+    });
+  });
+</script>
+</body>
+</html>
