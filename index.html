@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>300円センサーの中身を技術解説 | オープンキャンパス特別編</title>
-<meta name="description" content="100円ショップの300円センサーを分解し、赤外線受信・ESP32・Bluetoothの仕組みを技術目線で解説。オープンキャンパス来場者向けのミニ講座ページ。">
+<title>300円のセンサーから、ガチャガチャのロックを開けるまで | 技術解説</title>
+<meta name="description" content="100円ショップの300円リモコンライトを分解して赤外線センサーを取り出し、マイコン(ESP32)2台とPCをつないで、リズムゲームでスコアを取るとガチャガチャのロックが開く仕組みを作るまでの技術解説。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="300円センサーの中身を技術解説 | オープンキャンパス特別編">
-<meta property="og:description" content="100円ショップの300円センサーを分解し、赤外線受信・ESP32・Bluetoothの仕組みを技術目線で解説するミニ講座ページ。">
+<meta property="og:title" content="300円のセンサーから、ガチャガチャのロックを開けるまで">
+<meta property="og:description" content="100円ショップのセンサーを分解し、マイコン2台とPCをつないでガチャガチャのロックを制御するまでを、赤外線・サーボ・Bluetoothの仕組みから技術解説します。">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>">
 <link rel="stylesheet" href="style.css">
@@ -24,26 +24,34 @@
   <nav aria-label="目次">
     <a href="#find"><span class="dot" style="background:var(--c-amber)"></span>300円のセンサー</a>
     <a href="#teardown"><span class="dot" style="background:var(--c-purple)"></span>分解してみる</a>
-    <a href="#wiring"><span class="dot" style="background:var(--c-teal)"></span>ESP32への配線</a>
-    <a href="#serial"><span class="dot" style="background:var(--c-green)"></span>受信コードを見る</a>
+    <a href="#wiring"><span class="dot" style="background:var(--c-teal)"></span>マイコンにつなぐ</a>
+    <a href="#serial"><span class="dot" style="background:var(--c-green)"></span>受信してみる</a>
     <a href="#esp32"><span class="dot" style="background:var(--accent)"></span>ESP32ってなに?</a>
-    <a href="#wireless"><span class="dot" style="background:var(--c-sky)"></span>無線の違い</a>
+    <a href="#system"><span class="dot" style="background:var(--c-sky)"></span>全体の仕組み</a>
+    <a href="#servo"><span class="dot" style="background:var(--c-purple)"></span>ロックの正体</a>
+    <a href="#ble"><span class="dot" style="background:var(--c-teal)"></span>「開けろ」を伝える</a>
+    <a href="#detect"><span class="dot" style="background:var(--c-amber)"></span>「出た」を確かめる</a>
+    <a href="#state"><span class="dot" style="background:var(--c-green)"></span>状態を管理する</a>
+    <a href="#wireless"><span class="dot" style="background:var(--c-sky)"></span>無線の使い分け</a>
     <a href="#survey"><span class="dot" style="background:var(--c-gold)"></span>アンケート</a>
     <a href="#gallery"><span class="dot" style="background:var(--c-coral)"></span>(おまけ)他のセンサー</a>
-    <a href="#next"><span class="dot" style="background:var(--accent)"></span>(おまけ)もっと知るには</a>
+    <a href="#next"><span class="dot" style="background:var(--accent)"></span>(おまけ)まとめ</a>
   </nav>
 </details>
 
 <header class="hero">
   <div class="hero-inner">
-    <div class="kicker">オープンキャンパス特別編 ・ 技術解説ミニ講座</div>
-    <h1>その辺の300円グッズ、開けたらマイコンの教材だった</h1>
-    <div class="price-badge"><span class="yen">300円</span>の赤外線センサーから</div>
+    <div class="kicker">技術解説 ・ センサー / マイコン / 無線通信 / モーター制御</div>
+    <h1>300円のセンサーから、ガチャガチャのロックを開けるまで</h1>
+    <div class="price-badge"><span class="yen">300円</span>のリモコンライトが出発点</div>
     <p class="lead">
-      展示しているリズムゲームの中身は、100円ショップの<strong>リモコン式LEDライト</strong>と<strong>マイコン(ESP32)</strong>だけ。このページでは「なぜ動くのか」を、赤外線センサー・配線・プログラム・無線通信という<strong>技術の目線</strong>で分解して説明します。スマホでこのページを見ながら、目の前の実機と見比べてみてください。
+      100円ショップで買った<strong>リモコン式LEDライト</strong>を分解して、中の<strong>赤外線センサー</strong>を取り出す。それをマイコンにつないだら、リモコンのボタンが読めた。そこから、<strong>リズムゲーム</strong>を作り、さらに<strong>もう1台のマイコン</strong>をつないで、<strong>ゲームで目標スコアを取るとガチャガチャのロックが開く</strong>ところまで作りました。このページでは「なぜ動くのか」を、部品と信号の流れをたどりながら説明します。
     </p>
-    <div class="meta">情報工学・電子工学に興味がある人向けのミニ講座 ・ <a href="https://github.com/KeitoKuramochi/sensor_infrared" target="_blank" rel="noopener">制作の全過程はこちら(GitHub)</a></div>
-    <a class="hero-survey-link" href="#survey">📝 来場者アンケートはこちら(1分)</a>
+    <div class="meta">
+      センサー・回路・プログラム・無線・モーター制御の話 ・
+      <a href="https://github.com/KeitoKuramochi/sensor_infrared" target="_blank" rel="noopener">ソースコードと全過程(GitHub)</a>
+    </div>
+    <a class="hero-survey-link" href="#survey">📝 アンケートはこちら(1分)</a>
   </div>
 </header>
 
@@ -53,38 +61,36 @@
   <section id="find" style="--sec: var(--c-amber)">
     <h2><span class="sec-no">01</span>100円ショップで見つけた「300円のセンサー」</h2>
     <p>
-      展示の出発点はこれです。100円ショップの売り場に吊るされていた、リモコンで色が変わるLEDライト。税込330円。おもちゃとして売られていますが、<strong>電子工学の目で見ると「マイコン教材そのもの」</strong>です。
+      きっかけは、100円ショップで売っている<strong>リモコン式のLEDライト</strong>(税込330円)でした。18個のボタンが付いたリモコンで、ライトの色を12色に変えられます。
     </p>
-    <ul>
-      <li>リモコンのボタンを押すと色が変わる → <strong>赤外線でデジタル信号をやりとりしている</strong></li>
-      <li>光る部分がある → <strong>LED(発光ダイオード)という電子部品が入っている</strong></li>
-      <li>ボタンが12個以上ある → <strong>1個300円で12種類以上の信号パターンが手に入る</strong></li>
-    </ul>
-    <p>
-      「300円で技術が詰まったセンサーが買える」——ここに気づくと、100円ショップの見え方が変わります。
-    </p>
-
     <div class="photo-grid">
       <figure class="photo">
         <a class="zoom" href="images/package-light.jpg" target="_blank" rel="noopener">
-          <img src="images/package-light.jpg" alt="売り場のリモコンライト(イルミネーション)のパッケージ。税込330円" loading="lazy">
+          <img src="images/package-light.jpg" alt="100円ショップで売られているリモコン式LEDライトのパッケージ" loading="lazy">
         </a>
-        <figcaption>今回の主役。「リモコンライト[イルミネーション]」税込330円</figcaption>
+        <figcaption>リモコン式LEDライト(税込330円)</figcaption>
       </figure>
       <figure class="photo">
         <a class="zoom" href="images/remote.jpg" target="_blank" rel="noopener">
-          <img src="images/remote.jpg" alt="付属のリモコン。ON/OFF/Modeボタンと12色のカラーボタンが並んでいる" loading="lazy">
+          <img src="images/remote.jpg" alt="付属のリモコン。ON/OFFと12色のカラーボタンが並んでいる" loading="lazy">
         </a>
-        <figcaption>付属のリモコン。12色のカラーボタン+ON/OFF/Mode</figcaption>
+        <figcaption>付属のリモコン。ON/OFF・調光・12色ボタン</figcaption>
       </figure>
+    </div>
+    <p>
+      注目したのは<strong>「リモコンで操作できる」という部分</strong>です。リモコンが使えるということは、ライト側に<strong>赤外線を受け取るセンサー</strong>が必ず入っている、ということになります。
+    </p>
+    <div class="note-box">
+      <div class="note-title">💡 電子工作の視点で見ると</div>
+      赤外線センサーは単体で買うと数百円します。300円で「センサー + LED + リモコン(送信機)」が一式そろっているなら、<strong>部品としてかなり割がいい</strong>ことになります。100円ショップは、視点を変えると部品屋さんです。
     </div>
   </section>
 
-  <!-- ============================================================ 2. 分解してみる(注釈付き) ============================================================ -->
+  <!-- ============================================================ 2. 分解 ============================================================ -->
   <section id="teardown" style="--sec: var(--c-purple)">
     <h2><span class="sec-no">02</span>分解してみると、こうなっていた</h2>
     <p>
-      ケースを開けると、小さな基板が1枚。これが「マイコン教材」としての正体です。基板の上には<strong>2つの重要な部品</strong>が載っています。
+      ケースを開けると、小さな基板が1枚。この上に<strong>2つの重要な部品</strong>が載っています。
     </p>
 
     <figure class="annotated">
@@ -107,27 +113,25 @@
       <figcaption>基板の拡大(クリックで別タブ表示)。黒いドームが「光を受け取るセンサー」、中央のチップが「光を出す部品」</figcaption>
     </figure>
 
-    <p>
-      この2つは、電子工学的には正反対の役割です。
-    </p>
+    <p>この2つは、電子工学的には正反対の役割です。</p>
     <ul>
-      <li><strong>赤外線受信部</strong> — 目に見えない赤外線(光)を受け取り、電気信号に変換する<strong>センサー</strong>。型番は<code>VS838</code>という汎用パーツで、テレビやエアコンのリモコン受信部と同じ仕組みです</li>
-      <li><strong>RGB LED</strong> — 電気信号を受け取って光に変換する<strong>アクチュエータ(出力側の部品)</strong>。赤・緑・青の光の量を変えることで好きな色を作れます</li>
+      <li><strong>赤外線受信部</strong> — 目に見えない赤外線(光)を受け取り、電気信号に変える<strong>センサー</strong>。型番は<code>VS838</code>という汎用パーツで、テレビやエアコンのリモコン受信部と同じ仕組みです</li>
+      <li><strong>RGB LED</strong> — 電気信号を受け取って光に変える<strong>アクチュエータ(出力側の部品)</strong>。赤・緑・青の光の量を変えて好きな色を作れます</li>
     </ul>
     <p>
-      「センサーで受け取る」→「マイコンで判断する」→「アクチュエータで出力する」。これは電子工学のほぼすべての製品に共通する基本パターンです。
+      「<strong>センサーで受け取る</strong>」→「<strong>マイコンで判断する</strong>」→「<strong>アクチュエータで出力する</strong>」。これは電子工学のほぼすべての製品に共通する基本パターンです。このページの後半で出てくるガチャのロックも、まったく同じ形をしています。
     </p>
   </section>
 
   <!-- ============================================================ 3. ESP32への配線 ============================================================ -->
   <section id="wiring" style="--sec: var(--c-teal)">
-    <h2><span class="sec-no">03</span>技術解説:ここをマイコンにつなぐと受信できる</h2>
+    <h2><span class="sec-no">03</span>ここをマイコンにつなぐと、受信できる</h2>
     <p>
-      分解した基板から、赤外線受信部(VS838)の足を3本取り出し、マイコン(ESP32)につなぎます。配線はこれだけです。
+      分解した基板から赤外線受信部(VS838)の足を3本取り出し、マイコン(ESP32)につなぎます。配線はこれだけです。
     </p>
 
     <figure class="diagram">
-      <svg viewBox="0 0 680 250" role="img" aria-label="配線図: VS838のOUTをESP32のGPIO27へ、GNDをGNDへ、VCCを3V3へ接続">
+      <div class="diagram-scroll"><svg viewBox="0 0 680 250" role="img" aria-label="配線図: VS838のOUTをESP32のGPIO27へ、GNDをGNDへ、VCCを3V3へ接続">
         <rect class="dg-box" x="20" y="30" width="200" height="185" rx="10"/>
         <text class="dg-text" x="120" y="58" text-anchor="middle">赤外線受信部</text>
         <text class="dg-text-small" x="120" y="76" text-anchor="middle">VS838(ドーム正面から見て)</text>
@@ -150,17 +154,18 @@
         <text class="dg-text-small" x="470" y="128" text-anchor="start">● GND</text>
         <text class="dg-text-small" x="470" y="161" text-anchor="start">● 3V3(3.3Vの電源)</text>
         <text class="dg-text-small" x="557" y="198" text-anchor="middle">プログラムはArduino IDEで書き込む</text>
-      </svg>
+      </svg></div>
+      <div class="scroll-hint">← 横にスクロールできます →</div>
       <figcaption>配線図。VS838の OUT → GPIO27、GND → GND、VCC → 3V3 の3本だけ</figcaption>
     </figure>
 
     <div class="note-box">
       <div class="note-title">💡 これは「センサーの基本パターン」</div>
-      実は、世の中の多くのセンサーモジュールは<strong>電源(VCC)・グラウンド(GND)・信号(OUT)の3本</strong>という同じ構造でできています。このページの後半で紹介する人感センサーや距離センサーも、ほとんどが同じ3本パターンです。「1つ覚えれば、他のセンサーもだいたい読める」——電子工学の面白いところです。
+      世の中の多くのセンサーモジュールは<strong>電源(VCC)・グラウンド(GND)・信号(OUT)の3本</strong>という同じ構造でできています。後半で出てくるガチャの排出センサーも、このページの最後で紹介する人感センサーや距離センサーも、ほとんどが同じ3本パターンです。<strong>1つ覚えれば、他のセンサーもだいたい読める</strong>——電子工学の面白いところです。
     </div>
   </section>
 
-  <!-- ============================================================ 4. シリアルモニタで受信コードを見る ============================================================ -->
+  <!-- ============================================================ 4. シリアルモニタ ============================================================ -->
   <section id="serial" style="--sec: var(--c-green)">
     <h2><span class="sec-no">04</span>実際に受信してみる:「シリアルモニタ」という画面</h2>
     <p>
@@ -184,7 +189,7 @@
     </p>
 
     <p>
-      ボタン1つ = 決まった16進数のコード、という<strong>対応表</strong>が作れれば、あとはプログラムで「赤が来たら◯◯する」のように自由に処理できます。実際に取得した対応表の一部がこちらです。
+      「ボタン1つ = 決まった16進数のコード」という<strong>対応表</strong>が作れれば、あとはプログラムで「赤が来たら◯◯する」と自由に処理できます。実際に取得した対応表の一部がこちらです。
     </p>
 
     <div class="table-wrap">
@@ -200,17 +205,18 @@
         </tbody>
       </table>
     </div>
+    <p>
+      ここまでで<strong>「100円ショップのリモコンが、自作プログラムの入力装置になった」</strong>ことになります。この12色ボタンを使って、色が流れてくるのに合わせて同じ色を押す<strong>リズムゲーム</strong>を作りました。
+    </p>
   </section>
 
   <!-- ============================================================ 5. ESP32ってなに ============================================================ -->
   <section id="esp32" style="--sec: var(--accent)">
     <h2><span class="sec-no">05</span>そもそも、ESP32ってなに?</h2>
     <p>
-      <strong>マイコン(マイクロコントローラー)</strong>とは、「センサーの値を読む」「計算する」「部品を動かす」を1枚の基板でこなす、小さなコンピュータです。パソコンと違ってOSは動かず、書き込んだプログラムを電源が入っている間ずっとループ実行する、というシンプルな仕組みで動いています。
+      <strong>マイコン(マイクロコントローラー)</strong>とは、「センサーの値を読む」「計算する」「部品を動かす」を1枚の基板でこなす小さなコンピュータです。パソコンと違ってOSは動かず、書き込んだプログラムを電源が入っている間ずっとループ実行する、というシンプルな仕組みで動いています。
     </p>
-    <p>
-      今回使ったのは<strong>ESP32</strong>という小型マイコンボードです。特徴はシンプルにこの2つです。
-    </p>
+    <p>今回使った<strong>ESP32</strong>の特徴は、シンプルにこの2つです。</p>
     <ul>
       <li><strong>WiFiとBluetoothを最初から内蔵</strong>している</li>
       <li>それでも価格は1,000円程度と手頃</li>
@@ -220,38 +226,398 @@
       <a class="zoom" href="images/esp32-oled.jpg" target="_blank" rel="noopener">
         <img src="images/esp32-oled.jpg" alt="OLEDディスプレイ付きのESP32開発ボード" loading="lazy">
       </a>
-      <figcaption>今回使ったESP32(画面付きタイプ)。<a href="https://amzn.asia/d/08HVGAuJ" target="_blank" rel="noopener">Amazonで見る</a></figcaption>
+      <figcaption>リモコン受信に使ったESP32(小さい画面付きタイプ)。<a href="https://amzn.asia/d/08HVGAuJ" target="_blank" rel="noopener">Amazonで見る</a></figcaption>
+    </figure>
+
+    <p>
+      「無線が内蔵されている」というのが、ここから先の話の鍵になります。<strong>マイコンを2台用意すれば、離れた場所にある機械を無線で操作できる</strong>ということです。
+    </p>
+  </section>
+
+  <!-- ============================================================ 6. 全体の仕組み ============================================================ -->
+  <section id="system" style="--sec: var(--c-sky)">
+    <h2><span class="sec-no">06</span>ここから本題:ゲームでガチャのロックを開ける</h2>
+    <p>
+      リズムゲームができたので、次は<strong>「ゲームで目標スコアを取ると、ガチャガチャのロックが開く」</strong>仕組みを作りました。ガチャ本体のロック機構は友人が3Dプリンタで設計したもので、そこに<strong>2台目のマイコン</strong>を載せています。
+    </p>
+    <p>
+      まず全体の流れを見てください。登場するのは<strong>マイコン2台とPC1台</strong>です。
+    </p>
+
+    <figure class="diagram" data-wide>
+      <div class="diagram-scroll"><svg viewBox="0 0 900 400" role="img" aria-label="全体構成図。リモコンからESP32、PC、2台目のESP32、サーボへ信号が流れ、排出センサーからPCへ戻る">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" class="dg-arrowhead"/>
+          </marker>
+        </defs>
+
+        <text class="dg-text-accent" x="10" y="20">ゆき(ロックを開けるまで)</text>
+
+        <!-- Row 1 -->
+        <rect class="dg-box" x="8" y="34" width="120" height="76" rx="9"/>
+        <text class="dg-text" x="68" y="64" text-anchor="middle">リモコン</text>
+        <text class="dg-text-small" x="68" y="84" text-anchor="middle">100円ライト付属</text>
+        <text class="dg-text-small" x="68" y="100" text-anchor="middle">ボタンを押す</text>
+
+        <path class="dg-arrow" d="M 132 72 L 186 72" marker-end="url(#ah)"/>
+        <text class="dg-text-small" x="159" y="62" text-anchor="middle">赤外線</text>
+
+        <rect class="dg-box-accent" x="190" y="34" width="150" height="76" rx="9"/>
+        <text class="dg-text" x="265" y="60" text-anchor="middle">ESP32 ①</text>
+        <text class="dg-text-small" x="265" y="80" text-anchor="middle">VS838で受信して</text>
+        <text class="dg-text-small" x="265" y="96" text-anchor="middle">ボタン名を無線送信</text>
+
+        <path class="dg-arrow" d="M 344 72 L 398 72" marker-end="url(#ah)"/>
+        <text class="dg-text-small" x="371" y="62" text-anchor="middle">BLE</text>
+
+        <rect class="dg-box" x="402" y="34" width="150" height="76" rx="9"/>
+        <text class="dg-text" x="477" y="60" text-anchor="middle">PC</text>
+        <text class="dg-text-small" x="477" y="80" text-anchor="middle">ゲーム進行・採点</text>
+        <text class="dg-text-small" x="477" y="96" text-anchor="middle">目標に届いたか判定</text>
+
+        <path class="dg-arrow" d="M 556 72 L 610 72" marker-end="url(#ah)"/>
+        <text class="dg-text-small" x="583" y="62" text-anchor="middle">BLE</text>
+
+        <rect class="dg-box-accent" x="614" y="34" width="150" height="76" rx="9"/>
+        <text class="dg-text" x="689" y="60" text-anchor="middle">ESP32 ②</text>
+        <text class="dg-text-small" x="689" y="80" text-anchor="middle">ガチャ本体側</text>
+        <text class="dg-text-small" x="689" y="96" text-anchor="middle">「UNLOCK」を受信</text>
+
+        <path class="dg-arrow" d="M 768 72 L 818 72" marker-end="url(#ah)"/>
+        <text class="dg-text-small" x="793" y="62" text-anchor="middle">PWM</text>
+
+        <rect class="dg-box" x="822" y="34" width="70" height="76" rx="9"/>
+        <text class="dg-text" x="857" y="64" text-anchor="middle">サーボ</text>
+        <text class="dg-text-small" x="857" y="84" text-anchor="middle">爪が動く</text>
+        <text class="dg-text-small" x="857" y="100" text-anchor="middle">= 解錠</text>
+
+        <!-- down -->
+        <path class="dg-arrow" d="M 857 114 L 857 168" marker-end="url(#ah)" stroke-dasharray="5 4"/>
+        <text class="dg-text-small" x="857" y="146" text-anchor="middle">人が回す</text>
+
+        <text class="dg-text-accent" x="10" y="200">かえり(出たことを確かめて閉め直す)</text>
+
+        <!-- Row 2: right to left -->
+        <rect class="dg-box" x="790" y="214" width="102" height="76" rx="9"/>
+        <text class="dg-text" x="841" y="242" text-anchor="middle">カプセル</text>
+        <text class="dg-text-small" x="841" y="262" text-anchor="middle">排出口に</text>
+        <text class="dg-text-small" x="841" y="278" text-anchor="middle">落ちてくる</text>
+
+        <path class="dg-arrow" d="M 786 252 L 728 252" marker-end="url(#ah)"/>
+
+        <rect class="dg-box-accent" x="570" y="214" width="154" height="76" rx="9"/>
+        <text class="dg-text" x="647" y="240" text-anchor="middle">反射型IRセンサー</text>
+        <text class="dg-text-small" x="647" y="260" text-anchor="middle">赤外線を出して</text>
+        <text class="dg-text-small" x="647" y="276" text-anchor="middle">跳ね返りで検知</text>
+
+        <path class="dg-arrow" d="M 566 252 L 508 252" marker-end="url(#ah)"/>
+
+        <rect class="dg-box-accent" x="330" y="214" width="174" height="76" rx="9"/>
+        <text class="dg-text" x="417" y="240" text-anchor="middle">ESP32 ② が再施錠</text>
+        <text class="dg-text-small" x="417" y="260" text-anchor="middle">サーボを戻して</text>
+        <text class="dg-text-small" x="417" y="276" text-anchor="middle">2個目が出ないように</text>
+
+        <path class="dg-arrow" d="M 326 252 L 268 252" marker-end="url(#ah)"/>
+        <text class="dg-text-small" x="297" y="242" text-anchor="middle">BLE</text>
+
+        <rect class="dg-box" x="60" y="214" width="204" height="76" rx="9"/>
+        <text class="dg-text" x="162" y="240" text-anchor="middle">PCが「閉まった」を確認</text>
+        <text class="dg-text-small" x="162" y="260" text-anchor="middle">ここまで確認できて初めて</text>
+        <text class="dg-text-small" x="162" y="276" text-anchor="middle">次の人のゲームを許可する</text>
+
+        <path class="dg-arrow" d="M 162 300 L 162 340" marker-end="url(#ah)" stroke-dasharray="5 4"/>
+        <text class="dg-text-small" x="162" y="360" text-anchor="middle">次の人へ(最初に戻る)</text>
+      </svg></div>
+      <div class="scroll-hint">← 横にスクロールできます →</div>
+      <figcaption>全体構成。行きは「リモコン → ESP32① → PC → ESP32② → サーボ」、帰りは「排出センサー → ESP32② → PC」でループになっている</figcaption>
+    </figure>
+
+    <div class="note-box">
+      <div class="note-title">💡 なぜPCを間にはさむのか</div>
+      マイコンだけでも全部できそうに見えますが、あえて<strong>役割を分けています</strong>。マイコンは「センサーを読む」「モーターを動かす」という<strong>現場の仕事</strong>に集中させ、ゲームの進行・採点・目標との比較といった<strong>判断の仕事</strong>はPCに任せる。こうすると、ゲームのルールを変えたいときにマイコンを書き換えずPC側のプログラムだけ直せばよくなります。役割を分けて全体をシンプルに保つ、という設計の考え方です。
+    </div>
+  </section>
+
+  <!-- ============================================================ 7. サーボモーター ============================================================ -->
+  <section id="servo" style="--sec: var(--c-purple)">
+    <h2><span class="sec-no">07</span>ロックの正体は「サーボモーター」</h2>
+    <p>
+      ガチャのロックには<strong>サーボモーター</strong>という部品を使っています。今回使ったのは<code>SG90</code>という、電子工作で定番の小型サーボです。
+    </p>
+
+    <figure class="photo">
+      <a class="zoom" href="images/sensors/servo.jpg" target="_blank" rel="noopener">
+        <img src="images/sensors/servo.jpg" alt="SG90サーボモーター。青い本体に3本の線とプラスチックのホーンが付属している" loading="lazy">
+      </a>
+      <figcaption>SG90サーボモーター。付属の白い部品(ホーン)を軸に付けて使う</figcaption>
+    </figure>
+
+    <p>
+      普通のモーターは「電気を流すと回り続ける」だけですが、サーボモーターは<strong>「◯度の位置に行って、そこで止まっていて」と角度を指定できる</strong>のが特徴です。ロボットアームや、ラジコンのハンドルにも使われています。
+    </p>
+
+    <h3>角度はどうやって伝えるのか</h3>
+    <p>
+      サーボに角度を伝えるのは、信号線1本だけです。使うのは<strong>PWM(パルス幅変調)</strong>という方法で、
+      <strong>「電気をONにしている時間の長さ」で角度を表します</strong>。
+    </p>
+
+    <figure class="diagram">
+      <div class="diagram-scroll"><svg viewBox="0 0 680 200" role="img" aria-label="PWMのパルス幅の違いでサーボの角度が決まることを示す図">
+        <text class="dg-text-small" x="10" y="26">ONの時間が短い = 片側いっぱい</text>
+        <path class="dg-wire-out" d="M 10 60 L 40 60 L 40 40 L 55 40 L 55 60 L 200 60 L 200 40 L 215 40 L 215 60 L 330 60"/>
+        <text class="dg-text-accent" x="345" y="56">約0.5ミリ秒</text>
+        <text class="dg-text" x="470" y="56">→ 施錠の位置</text>
+
+        <text class="dg-text-small" x="10" y="116">ONの時間が長い = 反対側いっぱい</text>
+        <path class="dg-wire-vcc" d="M 10 150 L 40 150 L 40 130 L 110 130 L 110 150 L 200 150 L 200 130 L 270 130 L 270 150 L 330 150"/>
+        <text class="dg-text-accent" x="345" y="146">約2.4ミリ秒</text>
+        <text class="dg-text" x="470" y="146">→ 解錠の位置</text>
+
+        <text class="dg-text-small" x="10" y="186">※この信号を1秒間に50回くり返して送り続けると、サーボはその角度を保ち続ける</text>
+      </svg></div>
+      <div class="scroll-hint">← 横にスクロールできます →</div>
+      <figcaption>PWM。同じ1本の線でも「ONの長さ」を変えることで、別の意味を伝えられる</figcaption>
+    </figure>
+
+    <p>
+      プログラム上は<code>servo.write(0)</code>、<code>servo.write(180)</code>のように角度を数字で書くだけで、この細かいパルスはライブラリが作ってくれます。
+    </p>
+
+    <div class="note-box">
+      <div class="note-title">💡 力がサーボに直接かからない設計</div>
+      サーボの軸に付けた<strong>爪</strong>が、回転盤の歯にはまることでロックしています。ここで大事なのは、<strong>無理やり回そうとした力がサーボのギアに直接かからないようにすること</strong>です。力が爪 → 土台 → 本体へと流れるように設計しておかないと、小さなサーボのギアはすぐ壊れてしまいます。「動かす部品を、壊れないように配置する」のは機械設計側の腕の見せどころです。
+    </div>
+
+    <figure class="photo photo-todo">
+      <div class="todo-frame">
+        <span class="todo-icon">📷</span>
+        <span>ガチャ本体に組み込んだサーボとロック機構の写真(追加予定)</span>
+      </div>
     </figure>
   </section>
 
-  <!-- ============================================================ 6. 無線の違い ============================================================ -->
-  <section id="wireless" style="--sec: var(--c-sky)">
-    <h2><span class="sec-no">06</span>赤外線・WiFi・Bluetooth、無線の使い分け</h2>
+  <!-- ============================================================ 8. BLEで「開けろ」を伝える ============================================================ -->
+  <section id="ble" style="--sec: var(--c-teal)">
+    <h2><span class="sec-no">08</span>「開けろ」をどうやって伝えるか</h2>
     <p>
-      この工作の中には、実は<strong>3種類の無線</strong>が登場しています。それぞれ得意・不得意が違うので、使い分けを知っておくと電子工作の見通しが良くなります。
+      PCとガチャ側のマイコンは、<strong>BLE(Bluetooth Low Energy)</strong>でつながっています。ケーブルもWiFiルーターも要りません。電源を入れておけばPCが自動で見つけて接続します。
+    </p>
+
+    <figure class="photo photo-todo">
+      <div class="todo-frame">
+        <span class="todo-icon">📷</span>
+        <span>ガチャ本体に載せた2台目のESP32(画面付き)の写真(追加予定)</span>
+      </div>
+    </figure>
+
+    <h3>BLEは「引き出し」でデータをやりとりする</h3>
+    <p>
+      BLEでは、機器が<strong>名前の付いた引き出し</strong>をいくつか用意して待っています。相手はその引き出しに<strong>書き込む</strong>か、引き出しの中身が変わったら<strong>知らせてもらう</strong>、という形でやりとりします。この引き出しのことを<strong>キャラクタリスティック</strong>と呼びます。
+    </p>
+
+    <figure class="diagram">
+      <div class="diagram-scroll"><svg viewBox="0 0 680 220" role="img" aria-label="BLEでPCがコマンド用の引き出しに書き込み、状態用の引き出しから通知を受け取る図">
+        <defs>
+          <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" class="dg-arrowhead"/>
+          </marker>
+        </defs>
+        <rect class="dg-box" x="20" y="70" width="130" height="80" rx="9"/>
+        <text class="dg-text" x="85" y="105" text-anchor="middle">PC</text>
+        <text class="dg-text-small" x="85" y="125" text-anchor="middle">ゲーム側</text>
+
+        <rect class="dg-box-accent" x="420" y="20" width="240" height="80" rx="9"/>
+        <text class="dg-text" x="540" y="46" text-anchor="middle">コマンドの引き出し</text>
+        <text class="dg-text-small" x="540" y="66" text-anchor="middle">PCが文字を書き込む</text>
+        <text class="dg-text-accent" x="540" y="86" text-anchor="middle">UNLOCK / LOCK / STATUS</text>
+
+        <rect class="dg-box-accent" x="420" y="120" width="240" height="80" rx="9"/>
+        <text class="dg-text" x="540" y="146" text-anchor="middle">状態の引き出し</text>
+        <text class="dg-text-small" x="540" y="166" text-anchor="middle">ESP32が変化を知らせる</text>
+        <text class="dg-text-accent" x="540" y="186" text-anchor="middle">LOCKED / UNLOCKED / DISPENSED</text>
+
+        <path class="dg-arrow" d="M 155 95 C 250 95, 300 60, 414 60" marker-end="url(#ah2)"/>
+        <text class="dg-text-small" x="285" y="56" text-anchor="middle">書き込む</text>
+
+        <path class="dg-arrow" d="M 414 160 C 300 160, 250 125, 155 125" marker-end="url(#ah2)"/>
+        <text class="dg-text-small" x="285" y="176" text-anchor="middle">通知が届く</text>
+
+        <text class="dg-text-small" x="540" y="214" text-anchor="middle">ガチャ側のESP32が用意している引き出し</text>
+      </svg></div>
+      <div class="scroll-hint">← 横にスクロールできます →</div>
+      <figcaption>PCは「UNLOCK」という文字を書き込むだけ。逆にガチャ側は状態が変わるたびPCへ通知する</figcaption>
+    </figure>
+
+    <p>
+      つまり、PCがやっているのは<strong>たった6文字<code>UNLOCK</code>を書き込むこと</strong>だけです。それを受け取ったマイコンがサーボを回します。逆方向は通知で、ガチャ側が「いま解錠した」「カプセルが出た」「閉め直した」とPCに教えてきます。
+    </p>
+
+    <div class="note-box">
+      <div class="note-title">🔧 実際にハマったところ:同じ「書き込み」が2種類ある</div>
+      BLEの書き込みには<strong>「相手の受領確認を待つ書き込み」</strong>と<strong>「送りっぱなしの書き込み」</strong>の2種類があります。最初は送りっぱなしで送っていたのですが、ガチャ側は受領確認つきしか受け付けない設定になっていたため、<strong>コマンドが黙って捨てられていました</strong>。「接続は成功しているのに解錠しない」という状態で、原因が分かるまで時間がかかりました。通信の仕様を両側でそろえる大切さを実感した部分です。
+    </div>
+  </section>
+
+  <!-- ============================================================ 9. 排出の確認 ============================================================ -->
+  <section id="detect" style="--sec: var(--c-amber)">
+    <h2><span class="sec-no">09</span>「カプセルが出た」をどう確かめるか</h2>
+    <p>
+      解錠して終わりでは困ります。<strong>ちゃんと1個出たことを確認して、すぐ閉め直す</strong>必要があります。そこで排出口に、もう1つ別の赤外線センサーを付けています。
+    </p>
+
+    <figure class="photo photo-todo">
+      <div class="todo-frame">
+        <span class="todo-icon">📷</span>
+        <span>排出口に取り付けた反射型赤外線センサーの写真(追加予定)</span>
+      </div>
+    </figure>
+
+    <h3>100円ライトのセンサーとは、実は別のタイプ</h3>
+    <p>
+      ここが面白いところです。同じ「赤外線センサー」でも、<strong>役割がまったく違う2種類</strong>を使っています。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>100円ライトのセンサー</th><th>排出口のセンサー</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>タイプ</strong></td>
+            <td>受信専用(リモコン受信)</td>
+            <td>反射型(障害物センサー)</td>
+          </tr>
+          <tr>
+            <td><strong>自分で光を出すか</strong></td>
+            <td>出さない。相手(リモコン)の光を待つだけ</td>
+            <td><strong>自分で赤外線を出す</strong></td>
+          </tr>
+          <tr>
+            <td><strong>何を見ているか</strong></td>
+            <td>光が「点滅するパターン」= データ</td>
+            <td>出した光の<strong>跳ね返りの強さ</strong></td>
+          </tr>
+          <tr>
+            <td><strong>分かること</strong></td>
+            <td>どのボタンが押されたか</td>
+            <td>目の前に物があるかどうか</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      排出口のセンサーは、小さな基板に<strong>赤外線を出すLED</strong>と<strong>それを受けるセンサー</strong>が並んで付いています。カプセルが前を通ると跳ね返りが強くなり、基板上の判定回路がそれを検知して、信号線の電圧を切り替えます。マイコン側から見ると<strong>「HIGHかLOWか」の1ビットを読むだけ</strong>という、とても簡単な使い方になります。
+    </p>
+
+    <div class="note-box">
+      <div class="note-title">💡 感度は「つまみ」で調整する</div>
+      この手のセンサーには小さな<strong>可変抵抗(つまみ)</strong>が付いていて、回すと<strong>「どのくらい近づいたら反応するか」</strong>を変えられます。カプセルが通ったときだけ反応して、通路の壁には反応しない位置を、実際に回しながら探すことになります。センサーは付けただけでは終わらず、<strong>現場で調整して初めて使える</strong>——これは実際に作ってみないと分からない部分でした。
+    </div>
+  </section>
+
+  <!-- ============================================================ 10. 状態管理 ============================================================ -->
+  <section id="state" style="--sec: var(--c-green)">
+    <h2><span class="sec-no">10</span>いちばん面白いところ:「いまどの状態か」を管理する</h2>
+    <p>
+      部品がそろっても、それだけでは安心して人に遊んでもらえません。たとえばこんなことが起こります。
+    </p>
+    <ul>
+      <li>解錠したまま誰も回さずに立ち去ったら、<strong>次の人が無料で引けてしまう</strong></li>
+      <li>1回分だけ解錠したのに、勢いで<strong>2個出てしまう</strong></li>
+      <li>センサーが解錠した瞬間の機構の動きを、カプセルと<strong>間違えて検知する</strong></li>
+    </ul>
+    <p>
+      これを防ぐために、ガチャ側のマイコンは<strong>「いま自分がどの状態にいるか」</strong>を常に持っています。この考え方を<strong>状態機械(ステートマシン)</strong>と呼びます。
+    </p>
+
+    <figure class="diagram">
+      <div class="diagram-scroll"><svg viewBox="0 0 680 260" role="img" aria-label="施錠・解錠・お礼表示の3状態を巡る状態遷移図">
+        <defs>
+          <marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" class="dg-arrowhead"/>
+          </marker>
+        </defs>
+        <rect class="dg-box" x="30" y="90" width="150" height="66" rx="9"/>
+        <text class="dg-text" x="105" y="118" text-anchor="middle">施錠中</text>
+        <text class="dg-text-small" x="105" y="138" text-anchor="middle">画面「ロック中」</text>
+
+        <path class="dg-arrow" d="M 184 110 L 258 110" marker-end="url(#ah3)"/>
+        <text class="dg-text-small" x="221" y="100" text-anchor="middle">UNLOCK</text>
+        <text class="dg-text-small" x="221" y="128" text-anchor="middle">受信</text>
+
+        <rect class="dg-box-accent" x="262" y="90" width="150" height="66" rx="9"/>
+        <text class="dg-text" x="337" y="118" text-anchor="middle">解錠中</text>
+        <text class="dg-text-small" x="337" y="138" text-anchor="middle">画面「かいじょ!」</text>
+
+        <path class="dg-arrow" d="M 416 110 L 490 110" marker-end="url(#ah3)"/>
+        <text class="dg-text-small" x="453" y="100" text-anchor="middle">センサーが</text>
+        <text class="dg-text-small" x="453" y="128" text-anchor="middle">カプセル検知</text>
+
+        <rect class="dg-box" x="494" y="90" width="150" height="66" rx="9"/>
+        <text class="dg-text" x="569" y="118" text-anchor="middle">お礼を表示</text>
+        <text class="dg-text-small" x="569" y="138" text-anchor="middle">先に施錠してから</text>
+
+        <path class="dg-arrow" d="M 569 160 C 569 200, 105 200, 105 162" marker-end="url(#ah3)"/>
+        <text class="dg-text-small" x="337" y="228" text-anchor="middle">3秒たったら施錠中に戻る(最初の状態へ)</text>
+
+        <text class="dg-text-small" x="10" y="30">ポイント:カプセルを検知したら「お礼を表示する前に」サーボを閉める</text>
+        <text class="dg-text-small" x="10" y="50">→ 表示している数秒のあいだに2個目が出るのを防げる</text>
+      </svg></div>
+      <div class="scroll-hint">← 横にスクロールできます →</div>
+      <figcaption>ガチャ側マイコンの状態遷移。矢印は「何が起きたら次の状態に進むか」を表す</figcaption>
+    </figure>
+
+    <h3>誤検知を避ける小さな工夫</h3>
+    <p>
+      解錠した瞬間、センサーの前にたまたま機構の部品があると、カプセルが出ていないのに検知してしまいます。そこで<strong>「解錠したら、まずセンサーが『何もない』状態になるまで待つ。そこから監視を始める」</strong>という順番にしています。数行の工夫ですが、これがないと1回も回さずにロックが閉まってしまいます。
+    </p>
+
+    <h3>PCも同じ状態を見張っている</h3>
+    <p>
+      さらにPC側も、ガチャから届く通知(<code>UNLOCKED</code> → <code>DISPENSED</code> → <code>LOCKED</code>)を追いかけて、<strong>「閉まった」が確認できるまで次の人のゲームを始めさせません</strong>。ゲーム画面には進行状況が段階表示され、閉まったら「次の人どうぞ」に切り替わります。
+    </p>
+
+    <div class="note-box">
+      <div class="note-title">💡 これが「組み込みシステム」の考え方</div>
+      センサーとモーターをつなぐだけなら数行で書けます。でも<strong>人が実際に使う機械</strong>にするには「途中で立ち去ったら?」「2個出たら?」「センサーが誤反応したら?」を1つずつ考えて、状態と手順で守っていく必要があります。<strong>うまくいく場合だけでなく、うまくいかない場合を数えあげる</strong>。ここが、動くだけのものと、人に使ってもらえるものの差になります。
+    </div>
+  </section>
+
+  <!-- ============================================================ 11. 無線の違い ============================================================ -->
+  <section id="wireless" style="--sec: var(--c-sky)">
+    <h2><span class="sec-no">11</span>赤外線・WiFi・Bluetooth、無線の使い分け</h2>
+    <p>
+      この工作の中には<strong>3種類の無線</strong>が登場しました。それぞれ得意・不得意が違うので、使い分けを知っておくと電子工作の見通しが良くなります。
     </p>
 
     <div class="table-wrap">
       <table>
         <thead><tr><th>方式</th><th>たとえるなら</th><th>特徴</th><th>この工作での役目</th></tr></thead>
         <tbody>
-          <tr><td>赤外線(IR)</td><td>光で送る手紙</td><td>一直線に見えている範囲だけ。準備は不要</td><td>リモコン → ESP32</td></tr>
-          <tr><td>WiFi</td><td>郵便局経由の宅配</td><td>ルーターの電波が届く範囲。SSID/パスワードの設定が必要</td><td>最初はこれでPCに送信</td></tr>
-          <tr><td>Bluetooth(BLE)</td><td>トランシーバーで直接話す</td><td>数m〜数十m、機器同士が直接。ペアリング操作なしで自動接続</td><td>最終的にこちらへ乗り換え</td></tr>
+          <tr><td>赤外線(IR)</td><td>光で送る手紙</td><td>まっすぐ見えている範囲だけ。準備は不要</td><td>リモコン → ESP32①</td></tr>
+          <tr><td>WiFi</td><td>郵便局経由の宅配</td><td>ルーターの電波が届く範囲。SSID/パスワードの設定が必要</td><td>最初はこれでPCに送信していた</td></tr>
+          <tr><td>Bluetooth(BLE)</td><td>トランシーバーで直接話す</td><td>数m〜数十m、機器同士が直接。ペアリング操作なしで自動接続</td><td>ESP32① ⇄ PC ⇄ ESP32②</td></tr>
         </tbody>
       </table>
     </div>
 
     <p>
-      最初はWiFi経由でPCにボタン情報を送る構成でしたが、専用のWiFiルーターを用意する手間が発生していました。作り直す中で「WiFiを使わなくても、Bluetooth(BLE)で直接PCに送れる」と分かり、切り替えたところ<strong>ルーターも設定も不要</strong>になりました。ESP32はこの3種類の無線を1枚の基板でまかなえる、というのも小型マイコンの強みです。
+      最初はWiFi経由でPCにボタン情報を送る構成でしたが、専用のWiFiルーターを用意する手間が発生していました。作り直す中で「WiFiを使わなくても、BLEで直接PCに送れる」と分かり、切り替えたところ<strong>ルーターも設定も不要</strong>になりました。今は<strong>PCが2台のマイコンと同時にBLE接続している</strong>構成です。
     </p>
+
+    <div class="note-box">
+      <div class="note-title">🔧 実際にハマったところ:電波は「置き場所」で激変する</div>
+      ガチャ側のマイコンが、あるときは全く見つからず、あるときは問題なくつながる、という現象に悩まされました。調べていくと原因は<strong>置き場所</strong>でした。電波の強さを測ってみると、置き場所によって<strong>100倍以上の差</strong>が出ていました。無線は「つながるか / つながらないか」の白黒ではなく<strong>強さの連続した値</strong>で、弱いと「見つかるけど接続が続かない」という中間状態が起きます。最後は、電波の強さと接続の切れた回数を画面に表示して、置き場所を判断できるようにしました。
+    </div>
   </section>
 
-  <!-- ============================================================ 7. アンケート ============================================================ -->
+  <!-- ============================================================ 12. アンケート ============================================================ -->
   <section id="survey" style="--sec: var(--c-gold)">
-    <h2><span class="sec-no">07</span>来場者アンケート</h2>
+    <h2><span class="sec-no">12</span>アンケート</h2>
     <p>
-      今日の展示はどうでしたか?今後の展示づくりの参考にするので、1分ほどアンケートにご協力ください。
+      この展示はどうでしたか?今後の展示づくりの参考にするので、1分ほどご協力ください。
     </p>
     <div class="cta-box">
       <p>スマホでそのまま回答できます</p>
@@ -271,138 +637,117 @@
 
   <div class="bonus-divider">おまけ</div>
 
-  <!-- ============================================================ 8. 他のセンサー紹介ギャラリー ============================================================ -->
+  <!-- ============================================================ 13. 他のセンサー紹介ギャラリー ============================================================ -->
   <section id="gallery" style="--sec: var(--c-coral)">
-    <h2><span class="sec-no">08</span>他にもこんなセンサーがある</h2>
+    <h2><span class="sec-no">13</span>他にもこんなセンサーがある</h2>
     <p>
-      今回使った赤外線受信部は、電子工作の世界にある無数のセンサーのうちの1つです。同じスターターキットに入っている他のパーツを見てみましょう。<strong>「何を感じ取るか」「どこで使われているか」</strong>に注目すると、身の回りの家電やスマホの仕組みが見えてきます。
+      今回使った赤外線センサーは、電子工作の世界にある無数のセンサーのうちの2種類でした。スターターキットに入っている他のパーツも見てみましょう。<strong>「何を感じ取るか」「どこで使われているか」</strong>に注目すると、身の回りの家電やスマホの仕組みが見えてきます。
     </p>
 
-    <div class="sensor-cat">環境をセンシングする</div>
+    <div class="sensor-cat">人・動きを感じる</div>
     <div class="sensor-grid">
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/pir.jpg" alt="人感センサーPIR" loading="lazy"></div>
-        <h4>人感センサー(PIR)</h4>
-        <p class="sense">人の体が出す熱(赤外線)を検知する</p>
-        <p class="use">自動ドア・防犯ライト・トイレの自動洗浄</p>
-      </div>
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/dht11.jpg" alt="DHT11温湿度センサー" loading="lazy"></div>
-        <h4>温湿度センサー(DHT11)</h4>
-        <p class="sense">気温と湿度を数値で測る</p>
-        <p class="use">エアコンの自動制御・家庭菜園の見守り</p>
-      </div>
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/cds.jpg" alt="フォトレジスタCdSセル" loading="lazy"></div>
-        <h4>光センサー(CdSセル)</h4>
-        <p class="sense">明るさ(光の量)を電気の変化に変える</p>
-        <p class="use">暗くなると自動で点く街灯・カーテンの自動制御</p>
-      </div>
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/rain.jpg" alt="雨滴水位センサー" loading="lazy"></div>
-        <h4>雨滴・水位センサー</h4>
-        <p class="sense">水に濡れたか・水の高さを検知</p>
-        <p class="use">洗濯物の雨警報・植木鉢の水切れ通知</p>
-      </div>
+      <figure class="sensor-card">
+        <img src="images/sensors/pir.jpg" alt="PIR人感センサー" loading="lazy">
+        <figcaption><strong>PIR人感センサー</strong>人が出す熱(赤外線)の変化を検知。自動ドア・トイレの照明</figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/ultrasonic.jpg" alt="超音波距離センサー" loading="lazy">
+        <figcaption><strong>超音波距離センサー</strong>音を出して跳ね返る時間で距離を測る。車のバックセンサー</figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/gyro.jpg" alt="ジャイロ・加速度センサー" loading="lazy">
+        <figcaption><strong>ジャイロ・加速度センサー</strong>傾きと動きを検知。スマホの画面回転・ゲームコントローラー</figcaption>
+      </figure>
     </div>
 
-    <div class="sensor-cat">動き・距離をセンシングする</div>
+    <div class="sensor-cat">環境を感じる</div>
     <div class="sensor-grid">
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/ultrasonic.jpg" alt="超音波距離センサーHC-SR04" loading="lazy"></div>
-        <h4>超音波距離センサー</h4>
-        <p class="sense">音の反射時間から距離を測る(コウモリと同じ原理)</p>
-        <p class="use">自動ドア・車の後退警告・自動水栓</p>
-      </div>
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/gyro.jpg" alt="ジャイロ加速度センサーモジュール" loading="lazy"></div>
-        <h4>ジャイロ・加速度センサー</h4>
-        <p class="sense">傾きや動きの速さを検知</p>
-        <p class="use">スマホの画面回転・ゲーム機のモーション操作・ドローンの姿勢制御</p>
-      </div>
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/encoder.jpg" alt="ロータリーエンコーダーモジュール" loading="lazy"></div>
-        <h4>ロータリーエンコーダー</h4>
-        <p class="sense">つまみの回転方向と回転数を検知</p>
-        <p class="use">音量ノブ・3Dプリンタの位置決め</p>
-      </div>
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/joystick.jpg" alt="ジョイスティックモジュール" loading="lazy"></div>
-        <h4>ジョイスティックモジュール</h4>
-        <p class="sense">レバーのX/Y方向の傾きを検知</p>
-        <p class="use">ゲームコントローラー・ロボットの操作</p>
-      </div>
+      <figure class="sensor-card">
+        <img src="images/sensors/dht11.jpg" alt="温湿度センサー" loading="lazy">
+        <figcaption><strong>温湿度センサー(DHT11)</strong>気温と湿度を数値で取得。エアコン・気象観測</figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/cds.jpg" alt="CdS光センサー" loading="lazy">
+        <figcaption><strong>光センサー(CdS)</strong>明るさで抵抗が変わる。街灯の自動点灯</figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/rain.jpg" alt="雨滴・水位センサー" loading="lazy">
+        <figcaption><strong>雨滴・水位センサー</strong>水が触れると電気が流れることを利用。雨検知ワイパー</figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/sound.jpg" alt="音センサー" loading="lazy">
+        <figcaption><strong>音センサー</strong>音の大きさを検知。手を叩いて照明を操作</figcaption>
+      </figure>
     </div>
 
-    <div class="sensor-cat">通信・記録する</div>
+    <div class="sensor-cat">操作する・信号を受ける</div>
     <div class="sensor-grid">
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/ir-receiver-module.jpg" alt="赤外線受信モジュール" loading="lazy"></div>
-        <h4>赤外線受信モジュール</h4>
-        <p class="sense">今回の展示と同じ仕組みの汎用パーツ</p>
-        <p class="use">テレビ・エアコンなど家電のリモコン受信部</p>
-      </div>
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/rfid.jpg" alt="RFID-RC522モジュール" loading="lazy"></div>
-        <h4>RFIDリーダー</h4>
-        <p class="sense">ICカードに埋め込まれた情報を近距離無線で読み取る</p>
-        <p class="use">交通系ICカード・学生証・キーレスエントリー</p>
-      </div>
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/sound.jpg" alt="サウンドセンサーモジュール" loading="lazy"></div>
-        <h4>音センサー</h4>
-        <p class="sense">周囲の音の大きさを検知</p>
-        <p class="use">音に反応して光るライト・防犯ブザー</p>
-      </div>
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/rtc.jpg" alt="RTCモジュールDS1307" loading="lazy"></div>
-        <h4>RTCモジュール(時計IC)</h4>
-        <p class="sense">電源を切っても現在時刻を覚えている</p>
-        <p class="use">目覚まし時計・記録のタイムスタンプ</p>
-      </div>
+      <figure class="sensor-card">
+        <img src="images/sensors/ir-receiver-module.jpg" alt="赤外線受信モジュール" loading="lazy">
+        <figcaption><strong>赤外線受信モジュール</strong>今回分解して取り出したのと同じ部品。単体でも売っている</figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/ir-remote-kit.jpg" alt="赤外線リモコンと受信部のセット" loading="lazy">
+        <figcaption><strong>リモコン + 受信部セット</strong>キットにも入っている。100円ライトと同じ構成</figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/joystick.jpg" alt="ジョイスティックモジュール" loading="lazy">
+        <figcaption><strong>ジョイスティック</strong>倒した方向と量を電圧で取得。ゲームパッド</figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/encoder.jpg" alt="ロータリーエンコーダー" loading="lazy">
+        <figcaption><strong>ロータリーエンコーダー</strong>「どちらに何目盛り回したか」を検知。オーディオの音量つまみ</figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/rfid.jpg" alt="RFIDモジュール" loading="lazy">
+        <figcaption><strong>RFID</strong>カードをかざしてIDを読む。交通系ICカード・入退室管理</figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/rtc.jpg" alt="リアルタイムクロック" loading="lazy">
+        <figcaption><strong>リアルタイムクロック</strong>電源を切っても時刻を保つ。時計機能つき家電</figcaption>
+      </figure>
     </div>
 
-    <div class="sensor-cat">センサーだけじゃない:表示・出力パーツも</div>
+    <div class="sensor-cat">動かす・表示する(出力側)</div>
     <div class="sensor-grid">
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/lcd.jpg" alt="LCD1602液晶ディスプレイ" loading="lazy"></div>
-        <h4>LCD1602液晶ディスプレイ</h4>
-        <p class="sense">文字を2行×16文字で表示できる</p>
-        <p class="use">電子レンジ・券売機の文字表示</p>
-      </div>
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/servo.jpg" alt="サーボモーターSG90" loading="lazy"></div>
-        <h4>サーボモーター</h4>
-        <p class="sense">指定した角度にピタッと動く</p>
-        <p class="use">ロボットの関節・自動ドアのロック機構</p>
-      </div>
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/led-matrix.jpg" alt="LEDドットマトリクス8x8" loading="lazy"></div>
-        <h4>LEDドットマトリクス</h4>
-        <p class="sense">点の集まりで簡単な絵や文字を表示</p>
-        <p class="use">電車の行き先案内・電子掲示板</p>
-      </div>
-      <div class="sensor-card">
-        <div class="thumb"><img src="images/sensors/seven-segment.jpg" alt="7セグメントLED4桁" loading="lazy"></div>
-        <h4>7セグメントLED</h4>
-        <p class="sense">決まった形の光を組み合わせて数字を表示</p>
-        <p class="use">電卓・デジタル時計・体温計</p>
-      </div>
+      <figure class="sensor-card">
+        <img src="images/sensors/servo.jpg" alt="SG90サーボモーター" loading="lazy">
+        <figcaption><strong>サーボモーター</strong>角度を指定して動かす。<strong>今回のガチャのロックがこれ</strong></figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/lcd.jpg" alt="LCD1602ディスプレイ" loading="lazy">
+        <figcaption><strong>キャラクタ液晶(LCD1602)</strong>文字を2行表示。券売機の案内表示</figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/led-matrix.jpg" alt="LEDドットマトリクス" loading="lazy">
+        <figcaption><strong>LEDドットマトリクス</strong>点の集まりで絵や文字を表示。電光掲示板</figcaption>
+      </figure>
+      <figure class="sensor-card">
+        <img src="images/sensors/seven-segment.jpg" alt="7セグメントLED" loading="lazy">
+        <figcaption><strong>7セグメントLED</strong>7本の線で数字を表現。デジタル時計・電卓</figcaption>
+      </figure>
     </div>
   </section>
 
-  <!-- ============================================================ 9. まとめ+CTA ============================================================ -->
+  <!-- ============================================================ 14. まとめ ============================================================ -->
   <section id="next" style="--sec: var(--accent)">
-    <h2><span class="sec-no">09</span>今日見たものは、ほんの入り口</h2>
+    <h2><span class="sec-no">14</span>300円のセンサーから、ここまで来た</h2>
     <p>
-      300円のセンサー1つの中に、「電子回路」「プログラミング」「無線通信」という3つの技術が詰まっていました。今日紹介したのは、身の回りの家電やスマホに使われている技術のほんの一部です。
+      最初にあったのは、100円ショップの300円のライトだけでした。そこから順番にたどると、こんな技術が出てきました。
     </p>
+    <ul>
+      <li><strong>センサー</strong> — 赤外線を受け取る / 自分で出して跳ね返りを見る、2種類の使い方</li>
+      <li><strong>電子回路</strong> — 電源・GND・信号の3本をつなぐ、という共通のパターン</li>
+      <li><strong>プログラミング</strong> — 受け取ったコードで処理を分ける、状態を管理する</li>
+      <li><strong>無線通信</strong> — 赤外線・WiFi・BLEの使い分け、届く / 届かないの現実</li>
+      <li><strong>モーター制御</strong> — パルスの長さで角度を伝える、力のかかり方を考える</li>
+    </ul>
     <p>
-      工学系・情報系の学科では、こうした<strong>センサー・電子回路・プログラミング・通信の仕組み</strong>を体系的に学び、自分の手でものを動かせるようになります。「仕組みが気になる」と思ったら、それはもう向いている証拠です。
+      どれも、身の回りの家電やスマホ、自動ドアや券売機に入っているものと同じ仕組みです。<strong>「これ、中はどうなってるんだろう」</strong>と思って開けてみるところから、全部つながっていきました。
     </p>
     <div class="cta-box">
-      <p>もっと知りたくなったら、制作の全過程(配線・プログラム・詰まったところ)をブログ形式でも公開しています。</p>
-      <a class="cta-button" href="https://sensor-infrared.vercel.app/" target="_blank" rel="noopener">制作記事を読む →</a>
+      <p>プログラム・配線・詰まったところの記録は、すべてGitHubで公開しています。</p>
+      <a class="cta-button" href="https://github.com/KeitoKuramochi/sensor_infrared" target="_blank" rel="noopener">ソースコードを見る(GitHub) →</a>
     </div>
   </section>
 
@@ -415,7 +760,7 @@
 
 <footer>
   <div class="footer-inner">
-    <p>作: <a href="https://github.com/KeitoKuramochi" target="_blank" rel="noopener">KeitoKuramochi</a> — オープンキャンパス展示用の技術解説ページです。制作の全過程は<a href="https://github.com/KeitoKuramochi/sensor_infrared" target="_blank" rel="noopener">こちらのリポジトリ</a>で公開しています。</p>
+    <p>作: <a href="https://github.com/KeitoKuramochi" target="_blank" rel="noopener">KeitoKuramochi</a> — センサー工作の技術解説ページです。プログラムと全過程は<a href="https://github.com/KeitoKuramochi/sensor_infrared" target="_blank" rel="noopener">こちらのリポジトリ</a>で公開しています。ガチャ本体のロック機構は<a href="https://github.com/MaedaReno/gacha-machine" target="_blank" rel="noopener">MaedaReno氏の設計</a>によるものです。</p>
   </div>
 </footer>
 

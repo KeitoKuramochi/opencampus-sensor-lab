@@ -243,6 +243,28 @@ figcaption {
   .photo-grid { grid-template-columns: 1fr; }
 }
 
+/* ---------- 写真の差し込み待ち枠(撮影後に img に置き換える) ---------- */
+figure.photo-todo { margin: 24px 0; }
+
+figure.photo-todo .todo-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 132px;
+  padding: 22px 18px;
+  border: 2px dashed var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+  text-align: center;
+  line-height: 1.6;
+}
+
+figure.photo-todo .todo-icon { font-size: 1.6rem; opacity: 0.7; }
+
 /* ---------- 注釈つき写真(分解写真にラベルを重ねる) ---------- */
 
 figure.annotated {
@@ -315,6 +337,26 @@ figure.diagram {
 
 figure.diagram svg { width: 100%; height: auto; display: block; }
 figure.diagram figcaption { text-align: center; padding-bottom: 10px; }
+
+/* 図の中の文字はSVG全体と一緒に縮むため、狭い画面では読めない大きさになる。
+   そこで一定幅までしか縮めないようにして、代わりに横スクロールで見てもらう。 */
+figure.diagram .diagram-scroll { overflow-x: auto; }
+
+.scroll-hint {
+  display: none;
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+  text-align: center;
+  padding: 4px 0 2px;
+}
+
+/* 本文カラムは700pxなので、それより狭い画面でだけ縮小を止めて横スクロールに切り替える
+   (デスクトップでは図がそのまま収まるのでスクロールは出さない) */
+@media (max-width: 700px) {
+  figure.diagram .diagram-scroll > svg { min-width: 600px; }
+  figure.diagram[data-wide] .diagram-scroll > svg { min-width: 780px; }
+  .scroll-hint { display: block; }
+}
 
 .dg-box { fill: var(--bg); stroke: var(--ink-soft); stroke-width: 1.4; }
 .dg-box-accent { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.4; }
