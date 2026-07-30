@@ -22,11 +22,9 @@
 13. (おまけ)他にもこんなセンサーがある
 14. (おまけ)まとめ
 
-工作そのものの全ソースコード・配線・詰まったところの記録は別リポジトリで公開しています:
-[sensor_infrared](https://github.com/KeitoKuramochi/sensor_infrared)
+ガチャ本体のロック機構(3Dプリンタ設計)は共同制作者による設計です。
 
-ガチャ本体のロック機構(3Dプリンタ設計)は
-[MaedaReno/gacha-machine](https://github.com/MaedaReno/gacha-machine) によるものです。
+※ページ内には来場者向けのソースコード公開リンクは置いていません(公開の導線は付けない方針)。
 
 ## 差し込み待ちの写真
 

@@ -47,10 +47,7 @@
     <p class="lead">
       100円ショップで買った<strong>リモコン式LEDライト</strong>を分解して、中の<strong>赤外線センサー</strong>を取り出す。それをマイコンにつないだら、リモコンのボタンが読めた。そこから、<strong>リズムゲーム</strong>を作り、さらに<strong>もう1台のマイコン</strong>をつないで、<strong>ゲームで目標スコアを取るとガチャガチャのロックが開く</strong>ところまで作りました。このページでは「なぜ動くのか」を、部品と信号の流れをたどりながら説明します。
     </p>
-    <div class="meta">
-      センサー・回路・プログラム・無線・モーター制御の話 ・
-      <a href="https://github.com/KeitoKuramochi/sensor_infrared" target="_blank" rel="noopener">ソースコードと全過程(GitHub)</a>
-    </div>
+    <div class="meta">センサー・電子回路・プログラム・無線通信・モーター制御の話</div>
     <a class="hero-survey-link" href="#survey">📝 アンケートはこちら(1分)</a>
   </div>
 </header>
@@ -646,86 +643,120 @@
 
     <div class="sensor-cat">人・動きを感じる</div>
     <div class="sensor-grid">
-      <figure class="sensor-card">
-        <img src="images/sensors/pir.jpg" alt="PIR人感センサー" loading="lazy">
-        <figcaption><strong>PIR人感センサー</strong>人が出す熱(赤外線)の変化を検知。自動ドア・トイレの照明</figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/ultrasonic.jpg" alt="超音波距離センサー" loading="lazy">
-        <figcaption><strong>超音波距離センサー</strong>音を出して跳ね返る時間で距離を測る。車のバックセンサー</figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/gyro.jpg" alt="ジャイロ・加速度センサー" loading="lazy">
-        <figcaption><strong>ジャイロ・加速度センサー</strong>傾きと動きを検知。スマホの画面回転・ゲームコントローラー</figcaption>
-      </figure>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/pir.jpg" alt="PIR人感センサー" loading="lazy"></div>
+        <h4>人感センサー(PIR)</h4>
+        <p class="sense">人の体が出す熱(赤外線)の変化を検知する</p>
+        <p class="use">自動ドア・防犯ライト・トイレの自動洗浄</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/ultrasonic.jpg" alt="超音波距離センサー" loading="lazy"></div>
+        <h4>超音波距離センサー</h4>
+        <p class="sense">音を出して跳ね返るまでの時間で距離を測る</p>
+        <p class="use">車のバックセンサー・ロボットの障害物回避</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/gyro.jpg" alt="ジャイロ・加速度センサー" loading="lazy"></div>
+        <h4>ジャイロ・加速度センサー</h4>
+        <p class="sense">傾きと動きの速さを検知する</p>
+        <p class="use">スマホの画面回転・ゲームコントローラー</p>
+      </div>
     </div>
 
     <div class="sensor-cat">環境を感じる</div>
     <div class="sensor-grid">
-      <figure class="sensor-card">
-        <img src="images/sensors/dht11.jpg" alt="温湿度センサー" loading="lazy">
-        <figcaption><strong>温湿度センサー(DHT11)</strong>気温と湿度を数値で取得。エアコン・気象観測</figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/cds.jpg" alt="CdS光センサー" loading="lazy">
-        <figcaption><strong>光センサー(CdS)</strong>明るさで抵抗が変わる。街灯の自動点灯</figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/rain.jpg" alt="雨滴・水位センサー" loading="lazy">
-        <figcaption><strong>雨滴・水位センサー</strong>水が触れると電気が流れることを利用。雨検知ワイパー</figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/sound.jpg" alt="音センサー" loading="lazy">
-        <figcaption><strong>音センサー</strong>音の大きさを検知。手を叩いて照明を操作</figcaption>
-      </figure>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/dht11.jpg" alt="温湿度センサー" loading="lazy"></div>
+        <h4>温湿度センサー(DHT11)</h4>
+        <p class="sense">気温と湿度を数値で測る</p>
+        <p class="use">エアコンの自動制御・家庭菜園の見守り</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/cds.jpg" alt="CdS光センサー" loading="lazy"></div>
+        <h4>光センサー(CdS)</h4>
+        <p class="sense">明るさによって電気の流れやすさが変わる</p>
+        <p class="use">街灯の自動点灯・スマホの明るさ自動調整</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/rain.jpg" alt="雨滴・水位センサー" loading="lazy"></div>
+        <h4>雨滴・水位センサー</h4>
+        <p class="sense">水が触れると電気が流れることを利用する</p>
+        <p class="use">雨を検知するワイパー・水位の警報</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/sound.jpg" alt="音センサー" loading="lazy"></div>
+        <h4>音センサー</h4>
+        <p class="sense">音の大きさを検知する</p>
+        <p class="use">手を叩いて照明を操作・騒音の記録</p>
+      </div>
     </div>
 
     <div class="sensor-cat">操作する・信号を受ける</div>
     <div class="sensor-grid">
-      <figure class="sensor-card">
-        <img src="images/sensors/ir-receiver-module.jpg" alt="赤外線受信モジュール" loading="lazy">
-        <figcaption><strong>赤外線受信モジュール</strong>今回分解して取り出したのと同じ部品。単体でも売っている</figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/ir-remote-kit.jpg" alt="赤外線リモコンと受信部のセット" loading="lazy">
-        <figcaption><strong>リモコン + 受信部セット</strong>キットにも入っている。100円ライトと同じ構成</figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/joystick.jpg" alt="ジョイスティックモジュール" loading="lazy">
-        <figcaption><strong>ジョイスティック</strong>倒した方向と量を電圧で取得。ゲームパッド</figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/encoder.jpg" alt="ロータリーエンコーダー" loading="lazy">
-        <figcaption><strong>ロータリーエンコーダー</strong>「どちらに何目盛り回したか」を検知。オーディオの音量つまみ</figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/rfid.jpg" alt="RFIDモジュール" loading="lazy">
-        <figcaption><strong>RFID</strong>カードをかざしてIDを読む。交通系ICカード・入退室管理</figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/rtc.jpg" alt="リアルタイムクロック" loading="lazy">
-        <figcaption><strong>リアルタイムクロック</strong>電源を切っても時刻を保つ。時計機能つき家電</figcaption>
-      </figure>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/ir-receiver-module.jpg" alt="赤外線受信モジュール" loading="lazy"></div>
+        <h4>赤外線受信モジュール</h4>
+        <p class="sense">赤外線の点滅パターンを受け取る</p>
+        <p class="use">今回分解して取り出したのと同じ部品。単体でも売っている</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/ir-remote-kit.jpg" alt="赤外線リモコンと受信部のセット" loading="lazy"></div>
+        <h4>リモコン + 受信部セット</h4>
+        <p class="sense">送る側と受け取る側がセットになっている</p>
+        <p class="use">キットにも入っている。100円ライトと同じ構成</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/joystick.jpg" alt="ジョイスティックモジュール" loading="lazy"></div>
+        <h4>ジョイスティック</h4>
+        <p class="sense">倒した方向と倒し具合を電圧で取得する</p>
+        <p class="use">ゲームパッド・ラジコンの操縦</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/encoder.jpg" alt="ロータリーエンコーダー" loading="lazy"></div>
+        <h4>ロータリーエンコーダー</h4>
+        <p class="sense">「どちら向きに何目盛り回したか」を検知する</p>
+        <p class="use">オーディオの音量つまみ・工作機械の位置決め</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/rfid.jpg" alt="RFIDモジュール" loading="lazy"></div>
+        <h4>RFID</h4>
+        <p class="sense">カードをかざすと中のIDを読み取る</p>
+        <p class="use">交通系ICカード・入退室管理</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/rtc.jpg" alt="リアルタイムクロック" loading="lazy"></div>
+        <h4>リアルタイムクロック</h4>
+        <p class="sense">電源を切っても時刻を数え続ける</p>
+        <p class="use">時計機能つきの家電・データの記録時刻</p>
+      </div>
     </div>
 
     <div class="sensor-cat">動かす・表示する(出力側)</div>
     <div class="sensor-grid">
-      <figure class="sensor-card">
-        <img src="images/sensors/servo.jpg" alt="SG90サーボモーター" loading="lazy">
-        <figcaption><strong>サーボモーター</strong>角度を指定して動かす。<strong>今回のガチャのロックがこれ</strong></figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/lcd.jpg" alt="LCD1602ディスプレイ" loading="lazy">
-        <figcaption><strong>キャラクタ液晶(LCD1602)</strong>文字を2行表示。券売機の案内表示</figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/led-matrix.jpg" alt="LEDドットマトリクス" loading="lazy">
-        <figcaption><strong>LEDドットマトリクス</strong>点の集まりで絵や文字を表示。電光掲示板</figcaption>
-      </figure>
-      <figure class="sensor-card">
-        <img src="images/sensors/seven-segment.jpg" alt="7セグメントLED" loading="lazy">
-        <figcaption><strong>7セグメントLED</strong>7本の線で数字を表現。デジタル時計・電卓</figcaption>
-      </figure>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/servo.jpg" alt="SG90サーボモーター" loading="lazy"></div>
+        <h4>サーボモーター(SG90)</h4>
+        <p class="sense">「◯度に行って止まれ」と角度を指定して動かす</p>
+        <p class="use">今回のガチャのロックがこれ。ロボットアーム・ラジコン</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/lcd.jpg" alt="LCD1602ディスプレイ" loading="lazy"></div>
+        <h4>キャラクタ液晶(LCD1602)</h4>
+        <p class="sense">文字を2行表示する</p>
+        <p class="use">券売機の案内表示・測定器の画面</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/led-matrix.jpg" alt="LEDドットマトリクス" loading="lazy"></div>
+        <h4>LEDドットマトリクス</h4>
+        <p class="sense">点の集まりで絵や文字を表示する</p>
+        <p class="use">電光掲示板・バスの行先表示</p>
+      </div>
+      <div class="sensor-card">
+        <div class="thumb"><img src="images/sensors/seven-segment.jpg" alt="7セグメントLED" loading="lazy"></div>
+        <h4>7セグメントLED</h4>
+        <p class="sense">7本の線の組み合わせで数字を表す</p>
+        <p class="use">デジタル時計・電卓・体重計</p>
+      </div>
     </div>
   </section>
 
@@ -745,10 +776,6 @@
     <p>
       どれも、身の回りの家電やスマホ、自動ドアや券売機に入っているものと同じ仕組みです。<strong>「これ、中はどうなってるんだろう」</strong>と思って開けてみるところから、全部つながっていきました。
     </p>
-    <div class="cta-box">
-      <p>プログラム・配線・詰まったところの記録は、すべてGitHubで公開しています。</p>
-      <a class="cta-button" href="https://github.com/KeitoKuramochi/sensor_infrared" target="_blank" rel="noopener">ソースコードを見る(GitHub) →</a>
-    </div>
   </section>
 
   <div class="cta-box final-survey">
@@ -760,7 +787,7 @@
 
 <footer>
   <div class="footer-inner">
-    <p>作: <a href="https://github.com/KeitoKuramochi" target="_blank" rel="noopener">KeitoKuramochi</a> — センサー工作の技術解説ページです。プログラムと全過程は<a href="https://github.com/KeitoKuramochi/sensor_infrared" target="_blank" rel="noopener">こちらのリポジトリ</a>で公開しています。ガチャ本体のロック機構は<a href="https://github.com/MaedaReno/gacha-machine" target="_blank" rel="noopener">MaedaReno氏の設計</a>によるものです。</p>
+    <p>センサー工作の技術解説ページです。ガチャ本体のロック機構(3Dプリンタ設計)は共同制作者による設計です。</p>
   </div>
 </footer>
 
