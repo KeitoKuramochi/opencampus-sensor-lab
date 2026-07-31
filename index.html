@@ -7,7 +7,7 @@
 <meta name="description" content="100円ショップの300円リモコンライトを分解して赤外線センサーを取り出し、マイコン(ESP32)2台とPCをつないで、リズムゲームでスコアを取るとガチャガチャのロックが開く仕組みを作るまでの技術解説。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="300円のセンサーから、ガチャガチャのロックを開けるまで">
-<meta property="og:description" content="100円ショップのセンサーを分解し、マイコン2台とPCをつないでガチャガチャのロックを制御するまでを、赤外線・サーボ・Bluetoothの仕組みから技術解説します。">
+<meta property="og:description" content="100円ショップのセンサーを分解し、マイコン2台とPCをつないでガチャガチャのロックを制御するまでを、赤外線・サーボ・無線通信(BluetoothとWiFiの使い分け)の仕組みから技術解説します。">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>">
 <link rel="stylesheet" href="style.css">
@@ -22,6 +22,7 @@
     </span>
   </summary>
   <nav aria-label="目次">
+    <a href="#demo"><span class="dot" style="background:var(--c-coral)"></span>動いているところ</a>
     <a href="#find"><span class="dot" style="background:var(--c-amber)"></span>300円のセンサー</a>
     <a href="#teardown"><span class="dot" style="background:var(--c-purple)"></span>分解してみる</a>
     <a href="#wiring"><span class="dot" style="background:var(--c-teal)"></span>マイコンにつなぐ</a>
@@ -29,7 +30,7 @@
     <a href="#esp32"><span class="dot" style="background:var(--accent)"></span>ESP32ってなに?</a>
     <a href="#system"><span class="dot" style="background:var(--c-sky)"></span>全体の仕組み</a>
     <a href="#servo"><span class="dot" style="background:var(--c-purple)"></span>ロックの正体</a>
-    <a href="#ble"><span class="dot" style="background:var(--c-teal)"></span>「開けろ」を伝える</a>
+    <a href="#unlock"><span class="dot" style="background:var(--c-teal)"></span>「開けろ」を伝える</a>
     <a href="#detect"><span class="dot" style="background:var(--c-amber)"></span>「出た」を確かめる</a>
     <a href="#state"><span class="dot" style="background:var(--c-green)"></span>状態を管理する</a>
     <a href="#wireless"><span class="dot" style="background:var(--c-sky)"></span>無線の使い分け</a>
@@ -54,9 +55,43 @@
 
 <main>
 
-  <!-- ============================================================ 1. 100均で見つけた300円のセンサー ============================================================ -->
+  <!-- ============================================================ 1. デモ動画 ============================================================
+       ★動画の差し込み方★
+       1. 撮った動画を videos/demo.mp4 として置く(スマホ撮影なら .mov を .mp4 に変換しておくと確実)
+       2. 下の <figure class="photo-todo video-todo"> のブロックを削除する
+       3. その下のコメントアウトしてある <div class="video-wrap"> のコメント記号を外す
+       サムネイル画像を出したい場合は images/demo-poster.jpg を置いて poster 属性を足す
+  ============================================================ -->
+  <section id="demo" style="--sec: var(--c-coral)">
+    <h2><span class="sec-no">01</span>まずは、動いているところを見てください</h2>
+    <p>
+      100円ショップのリモコンでリズムゲームを遊んで、自分で決めた目標スコアに届くと——横に置いてあるガチャガチャの<strong>ロックが自動で開いて、実際にカプセルが出てきます</strong>。まずはその様子をどうぞ。
+    </p>
+
+    <figure class="photo-todo video-todo">
+      <div class="todo-frame">
+        <span class="todo-icon">🎬</span>
+        <span>デモ動画(追加予定)<br><code>videos/demo.mp4</code> を置くと、ここで再生できるようになります</span>
+      </div>
+    </figure>
+
+    <!-- 動画を置いたら、上の figure を消してこのコメントを外す
+    <div class="video-wrap">
+      <video controls playsinline preload="metadata" src="videos/demo.mp4">
+        お使いのブラウザは動画再生に対応していません。
+      </video>
+      <p class="video-note">▶ リモコンでリズムゲームを遊ぶ → 目標スコアに到達 → ガチャのロックが解除 → 実際に回してカプセルが出てくるまで(音が出ます)</p>
+    </div>
+    -->
+
+    <p>
+      見た目はただの「ゲームに勝ったらガチャが開く」ですが、この裏では<strong>赤外線・Bluetooth・WiFiという3種類の無線</strong>と、<strong>マイコン2台とPC1台</strong>が順番に仕事をしています。ここから先は、それが<strong>どういう部品と信号でできているのか</strong>を最初からほどいていきます。
+    </p>
+  </section>
+
+  <!-- ============================================================ 2. 100均で見つけた300円のセンサー ============================================================ -->
   <section id="find" style="--sec: var(--c-amber)">
-    <h2><span class="sec-no">01</span>100円ショップで見つけた「300円のセンサー」</h2>
+    <h2><span class="sec-no">02</span>100円ショップで見つけた「300円のセンサー」</h2>
     <p>
       きっかけは、100円ショップで売っている<strong>リモコン式のLEDライト</strong>(税込330円)でした。18個のボタンが付いたリモコンで、ライトの色を12色に変えられます。
     </p>
@@ -83,9 +118,9 @@
     </div>
   </section>
 
-  <!-- ============================================================ 2. 分解 ============================================================ -->
+  <!-- ============================================================ 3. 分解 ============================================================ -->
   <section id="teardown" style="--sec: var(--c-purple)">
-    <h2><span class="sec-no">02</span>分解してみると、こうなっていた</h2>
+    <h2><span class="sec-no">03</span>分解してみると、こうなっていた</h2>
     <p>
       ケースを開けると、小さな基板が1枚。この上に<strong>2つの重要な部品</strong>が載っています。
     </p>
@@ -120,9 +155,9 @@
     </p>
   </section>
 
-  <!-- ============================================================ 3. ESP32への配線 ============================================================ -->
+  <!-- ============================================================ 4. ESP32への配線 ============================================================ -->
   <section id="wiring" style="--sec: var(--c-teal)">
-    <h2><span class="sec-no">03</span>ここをマイコンにつなぐと、受信できる</h2>
+    <h2><span class="sec-no">04</span>ここをマイコンにつなぐと、受信できる</h2>
     <p>
       分解した基板から赤外線受信部(VS838)の足を3本取り出し、マイコン(ESP32)につなぎます。配線はこれだけです。
     </p>
@@ -162,9 +197,9 @@
     </div>
   </section>
 
-  <!-- ============================================================ 4. シリアルモニタ ============================================================ -->
+  <!-- ============================================================ 5. シリアルモニタ ============================================================ -->
   <section id="serial" style="--sec: var(--c-green)">
-    <h2><span class="sec-no">04</span>実際に受信してみる:「シリアルモニタ」という画面</h2>
+    <h2><span class="sec-no">05</span>実際に受信してみる:「シリアルモニタ」という画面</h2>
     <p>
       配線が終わったら、Arduino IDE(マイコン用の無料プログラミングソフト)で受信プログラムを書き込みます。Arduino IDEには<strong>「シリアルモニタ」</strong>という機能があり、マイコンが受け取ったデータをリアルタイムでPCの画面に表示できます。リモコンのボタンを1つずつ押すと、こんな出力が得られます。
     </p>
@@ -207,9 +242,9 @@
     </p>
   </section>
 
-  <!-- ============================================================ 5. ESP32ってなに ============================================================ -->
+  <!-- ============================================================ 6. ESP32ってなに ============================================================ -->
   <section id="esp32" style="--sec: var(--accent)">
-    <h2><span class="sec-no">05</span>そもそも、ESP32ってなに?</h2>
+    <h2><span class="sec-no">06</span>そもそも、ESP32ってなに?</h2>
     <p>
       <strong>マイコン(マイクロコントローラー)</strong>とは、「センサーの値を読む」「計算する」「部品を動かす」を1枚の基板でこなす小さなコンピュータです。パソコンと違ってOSは動かず、書き込んだプログラムを電源が入っている間ずっとループ実行する、というシンプルな仕組みで動いています。
     </p>
@@ -231,14 +266,14 @@
     </p>
   </section>
 
-  <!-- ============================================================ 6. 全体の仕組み ============================================================ -->
+  <!-- ============================================================ 7. 全体の仕組み ============================================================ -->
   <section id="system" style="--sec: var(--c-sky)">
-    <h2><span class="sec-no">06</span>ここから本題:ゲームでガチャのロックを開ける</h2>
+    <h2><span class="sec-no">07</span>ここから本題:ゲームでガチャのロックを開ける</h2>
     <p>
       リズムゲームができたので、次は<strong>「ゲームで目標スコアを取ると、ガチャガチャのロックが開く」</strong>仕組みを作りました。ガチャ本体のロック機構は友人が3Dプリンタで設計したもので、そこに<strong>2台目のマイコン</strong>を載せています。
     </p>
     <p>
-      まず全体の流れを見てください。登場するのは<strong>マイコン2台とPC1台</strong>です。
+      まず全体の流れを見てください。登場するのは<strong>マイコン2台とPC1台</strong>、そして<strong>3種類の無線</strong>です。リモコンからESP32①までは<strong>赤外線</strong>、ESP32①からPCまでは<strong>Bluetooth(BLE)</strong>、PCからガチャ側のESP32②までは<strong>WiFi</strong>——というように、<strong>区間ごとに別の無線を使っています</strong>。なぜバラバラなのかは、あとの章で理由も含めて説明します。
     </p>
 
     <figure class="diagram" data-wide>
@@ -274,12 +309,12 @@
         <text class="dg-text-small" x="477" y="96" text-anchor="middle">目標に届いたか判定</text>
 
         <path class="dg-arrow" d="M 556 72 L 610 72" marker-end="url(#ah)"/>
-        <text class="dg-text-small" x="583" y="62" text-anchor="middle">BLE</text>
+        <text class="dg-text-small" x="583" y="62" text-anchor="middle">WiFi</text>
 
         <rect class="dg-box-accent" x="614" y="34" width="150" height="76" rx="9"/>
         <text class="dg-text" x="689" y="60" text-anchor="middle">ESP32 ②</text>
         <text class="dg-text-small" x="689" y="80" text-anchor="middle">ガチャ本体側</text>
-        <text class="dg-text-small" x="689" y="96" text-anchor="middle">「UNLOCK」を受信</text>
+        <text class="dg-text-small" x="689" y="96" text-anchor="middle">「/unlock」を受信</text>
 
         <path class="dg-arrow" d="M 768 72 L 818 72" marker-end="url(#ah)"/>
         <text class="dg-text-small" x="793" y="62" text-anchor="middle">PWM</text>
@@ -292,6 +327,9 @@
         <!-- down -->
         <path class="dg-arrow" d="M 857 114 L 857 168" marker-end="url(#ah)" stroke-dasharray="5 4"/>
         <text class="dg-text-small" x="857" y="146" text-anchor="middle">人が回す</text>
+
+        <text class="dg-text-small" x="10" y="138">※ 無線は区間ごとに使い分けている:ESP32① ⇄ PC は Bluetooth(BLE)、PC ⇄ ESP32② は WiFi(ルーター経由)</text>
+        <text class="dg-text-small" x="10" y="158">ESP32はどちらも内蔵しているので、区間ごとに向いているほうを選べる</text>
 
         <text class="dg-text-accent" x="10" y="200">かえり(出たことを確かめて閉め直す)</text>
 
@@ -316,7 +354,7 @@
         <text class="dg-text-small" x="417" y="276" text-anchor="middle">2個目が出ないように</text>
 
         <path class="dg-arrow" d="M 326 252 L 268 252" marker-end="url(#ah)"/>
-        <text class="dg-text-small" x="297" y="242" text-anchor="middle">BLE</text>
+        <text class="dg-text-small" x="297" y="242" text-anchor="middle">WiFi</text>
 
         <rect class="dg-box" x="60" y="214" width="204" height="76" rx="9"/>
         <text class="dg-text" x="162" y="240" text-anchor="middle">PCが「閉まった」を確認</text>
@@ -327,7 +365,7 @@
         <text class="dg-text-small" x="162" y="360" text-anchor="middle">次の人へ(最初に戻る)</text>
       </svg></div>
       <div class="scroll-hint">← 横にスクロールできます →</div>
-      <figcaption>全体構成。行きは「リモコン → ESP32① → PC → ESP32② → サーボ」、帰りは「排出センサー → ESP32② → PC」でループになっている</figcaption>
+      <figcaption>全体構成。行きは「リモコン → ESP32① → PC → ESP32② → サーボ」、帰りは「排出センサー → ESP32② → PC」でループになっている。無線は3種類(赤外線 / Bluetooth / WiFi)が登場する</figcaption>
     </figure>
 
     <div class="note-box">
@@ -336,9 +374,9 @@
     </div>
   </section>
 
-  <!-- ============================================================ 7. サーボモーター ============================================================ -->
+  <!-- ============================================================ 8. サーボモーター ============================================================ -->
   <section id="servo" style="--sec: var(--c-purple)">
-    <h2><span class="sec-no">07</span>ロックの正体は「サーボモーター」</h2>
+    <h2><span class="sec-no">08</span>ロックの正体は「サーボモーター」</h2>
     <p>
       ガチャのロックには<strong>サーボモーター</strong>という部品を使っています。今回使ったのは<code>SG90</code>という、電子工作で定番の小型サーボです。
     </p>
@@ -395,11 +433,11 @@
     </figure>
   </section>
 
-  <!-- ============================================================ 8. BLEで「開けろ」を伝える ============================================================ -->
-  <section id="ble" style="--sec: var(--c-teal)">
-    <h2><span class="sec-no">08</span>「開けろ」をどうやって伝えるか</h2>
+  <!-- ============================================================ 9. 「開けろ」を伝える(BLEとWiFiの使い分け) ============================================================ -->
+  <section id="unlock" style="--sec: var(--c-teal)">
+    <h2><span class="sec-no">09</span>「開けろ」をどうやって伝えるか</h2>
     <p>
-      PCとガチャ側のマイコンは、<strong>BLE(Bluetooth Low Energy)</strong>でつながっています。ケーブルもWiFiルーターも要りません。電源を入れておけばPCが自動で見つけて接続します。
+      PCは2台のマイコンと同時につながっています。ところが<strong>この2本は別々の無線を使っています</strong>。リモコン側とは<strong>Bluetooth(BLE)</strong>、ガチャ側とは<strong>WiFi</strong>です。同じESP32なのになぜ揃えないのか——理由は、この章の最後のハマった話にあります。
     </p>
 
     <figure class="photo photo-todo">
@@ -409,57 +447,132 @@
       </div>
     </figure>
 
-    <h3>BLEは「引き出し」でデータをやりとりする</h3>
+    <h3>① リモコン側 → PC:BLEは「引き出し」でやりとりする</h3>
     <p>
-      BLEでは、機器が<strong>名前の付いた引き出し</strong>をいくつか用意して待っています。相手はその引き出しに<strong>書き込む</strong>か、引き出しの中身が変わったら<strong>知らせてもらう</strong>、という形でやりとりします。この引き出しのことを<strong>キャラクタリスティック</strong>と呼びます。
+      リモコンのボタンを受け取ったESP32①は、その結果をBLEでPCに送ります。BLEでは、機器が<strong>名前の付いた引き出し</strong>をいくつか用意して待っています。相手はその引き出しに<strong>書き込む</strong>か、引き出しの中身が変わったら<strong>知らせてもらう</strong>、という形でやりとりします。この引き出しのことを<strong>キャラクタリスティック</strong>と呼びます。
     </p>
 
     <figure class="diagram">
-      <div class="diagram-scroll"><svg viewBox="0 0 680 220" role="img" aria-label="BLEでPCがコマンド用の引き出しに書き込み、状態用の引き出しから通知を受け取る図">
+      <div class="diagram-scroll"><svg viewBox="0 0 680 200" role="img" aria-label="BLEでESP32がボタン名を引き出しに書き込み、その変化がPCに通知される図">
         <defs>
           <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M 0 0 L 10 5 L 0 10 z" class="dg-arrowhead"/>
           </marker>
         </defs>
-        <rect class="dg-box" x="20" y="70" width="130" height="80" rx="9"/>
-        <text class="dg-text" x="85" y="105" text-anchor="middle">PC</text>
-        <text class="dg-text-small" x="85" y="125" text-anchor="middle">ゲーム側</text>
+        <rect class="dg-box-accent" x="20" y="40" width="230" height="120" rx="9"/>
+        <text class="dg-text" x="135" y="68" text-anchor="middle">ESP32 ①(リモコン側)</text>
+        <rect class="dg-box" x="40" y="84" width="190" height="58" rx="8"/>
+        <text class="dg-text-small" x="135" y="106" text-anchor="middle">ボタンの引き出し</text>
+        <text class="dg-text-accent" x="135" y="128" text-anchor="middle">RED / GREEN / BLUE …</text>
 
-        <rect class="dg-box-accent" x="420" y="20" width="240" height="80" rx="9"/>
-        <text class="dg-text" x="540" y="46" text-anchor="middle">コマンドの引き出し</text>
-        <text class="dg-text-small" x="540" y="66" text-anchor="middle">PCが文字を書き込む</text>
-        <text class="dg-text-accent" x="540" y="86" text-anchor="middle">UNLOCK / LOCK / STATUS</text>
+        <path class="dg-arrow" d="M 256 100 L 428 100" marker-end="url(#ah2)"/>
+        <text class="dg-text-small" x="342" y="88" text-anchor="middle">中身が変わったら通知が届く</text>
+        <text class="dg-text-small" x="342" y="122" text-anchor="middle">(PCから聞きに行かなくていい)</text>
 
-        <rect class="dg-box-accent" x="420" y="120" width="240" height="80" rx="9"/>
-        <text class="dg-text" x="540" y="146" text-anchor="middle">状態の引き出し</text>
-        <text class="dg-text-small" x="540" y="166" text-anchor="middle">ESP32が変化を知らせる</text>
-        <text class="dg-text-accent" x="540" y="186" text-anchor="middle">LOCKED / UNLOCKED / DISPENSED</text>
+        <rect class="dg-box" x="432" y="60" width="200" height="80" rx="9"/>
+        <text class="dg-text" x="532" y="95" text-anchor="middle">PC</text>
+        <text class="dg-text-small" x="532" y="117" text-anchor="middle">ゲーム進行・採点</text>
 
-        <path class="dg-arrow" d="M 155 95 C 250 95, 300 60, 414 60" marker-end="url(#ah2)"/>
-        <text class="dg-text-small" x="285" y="56" text-anchor="middle">書き込む</text>
-
-        <path class="dg-arrow" d="M 414 160 C 300 160, 250 125, 155 125" marker-end="url(#ah2)"/>
-        <text class="dg-text-small" x="285" y="176" text-anchor="middle">通知が届く</text>
-
-        <text class="dg-text-small" x="540" y="214" text-anchor="middle">ガチャ側のESP32が用意している引き出し</text>
+        <text class="dg-text-small" x="10" y="186">引き出し = キャラクタリスティック。BLEはこの「置き場所」を介してデータをやりとりする</text>
       </svg></div>
       <div class="scroll-hint">← 横にスクロールできます →</div>
-      <figcaption>PCは「UNLOCK」という文字を書き込むだけ。逆にガチャ側は状態が変わるたびPCへ通知する</figcaption>
+      <figcaption>ESP32①が押されたボタン名を引き出しに書き入れると、その変化がPCに通知される。押した瞬間に届くので、リズムゲームのように反応の速さが要る用途に向いている</figcaption>
+    </figure>
+
+    <h3>② PC → ガチャ側:やっていることは「URLを開く」だけ</h3>
+    <p>
+      ガチャ側のESP32②は、会場のWiFiにつないだうえで<strong>小さなWebサーバー</strong>になっています。ホームページを配っているサーバーと、立場としては同じです。PCがやることは、そのESP32の<strong>URLを開くだけ</strong>。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>PCが開くURL</th><th>意味</th></tr></thead>
+        <tbody>
+          <tr><td><code>http://gacha.local/unlock</code></td><td>ロックを開けて(目標スコア達成時)</td></tr>
+          <tr><td><code>http://gacha.local/lock</code></td><td>強制的に閉めて(運営用の非常ボタン)</td></tr>
+          <tr><td><code>http://gacha.local/status</code></td><td>いまどうなってる?と聞く</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <figure class="diagram">
+      <div class="diagram-scroll"><svg viewBox="0 0 680 240" role="img" aria-label="PCがWiFiルーター経由でガチャ側ESP32のURLを開き、JSONの返事を受け取る図">
+        <defs>
+          <marker id="ah4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" class="dg-arrowhead"/>
+          </marker>
+        </defs>
+        <rect class="dg-box" x="20" y="40" width="170" height="94" rx="9"/>
+        <text class="dg-text" x="105" y="72" text-anchor="middle">PC</text>
+        <text class="dg-text-small" x="105" y="94" text-anchor="middle">ゲーム側</text>
+        <text class="dg-text-small" x="105" y="114" text-anchor="middle">0.4秒ごとに聞きに行く</text>
+
+        <path class="dg-arrow" d="M 196 62 L 464 62" marker-end="url(#ah4)"/>
+        <text class="dg-text-accent" x="330" y="52" text-anchor="middle">GET /unlock</text>
+
+        <path class="dg-arrow" d="M 464 108 L 196 108" marker-end="url(#ah4)"/>
+        <text class="dg-text-small" x="330" y="98" text-anchor="middle">返事(JSON)</text>
+        <text class="dg-text-accent" x="330" y="128" text-anchor="middle">{"state":"UNLOCKED", …}</text>
+
+        <rect class="dg-box-accent" x="470" y="30" width="190" height="114" rx="9"/>
+        <text class="dg-text" x="565" y="58" text-anchor="middle">ESP32 ②(ガチャ側)</text>
+        <text class="dg-text-small" x="565" y="80" text-anchor="middle">小さなWebサーバー</text>
+        <text class="dg-text-small" x="565" y="100" text-anchor="middle">として待っている</text>
+        <text class="dg-text-accent" x="565" y="126" text-anchor="middle">gacha.local</text>
+
+        <path class="dg-arrow" d="M 105 138 L 105 192 L 276 192" stroke-dasharray="5 4"/>
+        <path class="dg-arrow" d="M 565 148 L 565 192 L 424 192" stroke-dasharray="5 4"/>
+        <rect class="dg-box" x="280" y="166" width="140" height="54" rx="9"/>
+        <text class="dg-text-small" x="350" y="190" text-anchor="middle">WiFiルーター</text>
+        <text class="dg-text-small" x="350" y="208" text-anchor="middle">2台とも同じLANにいる</text>
+      </svg></div>
+      <div class="scroll-hint">← 横にスクロールできます →</div>
+      <figcaption>PCがガチャ側ESP32のURLを開くと、ESP32はサーボを動かして今の状態をJSONで返す。ブラウザのアドレス欄に打ち込んでも同じことが起きる</figcaption>
     </figure>
 
     <p>
-      つまり、PCがやっているのは<strong>たった6文字<code>UNLOCK</code>を書き込むこと</strong>だけです。それを受け取ったマイコンがサーボを回します。逆方向は通知で、ガチャ側が「いま解錠した」「カプセルが出た」「閉め直した」とPCに教えてきます。
+      面白いのは、これが<strong>特別な通信ではない</strong>ことです。ふだんスマホでサイトを見るときとまったく同じ<strong>HTTP</strong>という仕組みなので、PCのプログラムを動かさなくても、ブラウザのアドレス欄に<code>http://gacha.local/unlock</code>と打ち込めばロックが開きます。動作確認がとても楽になりました。
+    </p>
+
+    <h3>ESP32からの返事</h3>
+    <p>
+      <code>/status</code>を開くと、ガチャ側のESP32はこんな返事を返します。
+    </p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span>
+        <span class="label">http://gacha.local/status の返事</span>
+      </div>
+      <pre>{<span class="code">"state"</span>:<span class="btn">"UNLOCKED"</span>,<span class="code">"dispensed"</span>:<span class="btn">12</span>,<span class="code">"rssi"</span>:<span class="btn">-58</span>}
+<span class="rem">state     … いまの状態(LOCKED / UNLOCKED / DISPENSED)</span>
+<span class="rem">dispensed … これまでに出したカプセルの通算個数</span>
+<span class="rem">rssi      … ガチャ機から見たWiFiの電波の強さ(dBm)</span></pre>
+    </div>
+    <p class="terminal-note">
+      ※たった3つの数字ですが、これで「開いたか」「出たか」「電波は足りているか」が全部分かります。
+    </p>
+
+    <h3>IPアドレスではなく名前で呼ぶ(mDNS)</h3>
+    <p>
+      ルーターがESP32に配るIPアドレス(<code>192.168.…</code>)は、電源を入れ直すと変わることがあります。そのたびにPC側の設定を書き換えるのは面倒なので、ESP32に<strong><code>gacha.local</code>という名前を名乗らせています</strong>。これは<strong>mDNS</strong>という仕組みで、同じLANの中なら「その名前の子、いる?」と呼びかけてIPを教えてもらえます。おかげで<strong>IPが変わっても何も直さなくてよく</strong>なりました。
     </p>
 
     <div class="note-box">
-      <div class="note-title">🔧 実際にハマったところ:同じ「書き込み」が2種類ある</div>
-      BLEの書き込みには<strong>「相手の受領確認を待つ書き込み」</strong>と<strong>「送りっぱなしの書き込み」</strong>の2種類があります。最初は送りっぱなしで送っていたのですが、ガチャ側は受領確認つきしか受け付けない設定になっていたため、<strong>コマンドが黙って捨てられていました</strong>。「接続は成功しているのに解錠しない」という状態で、原因が分かるまで時間がかかりました。通信の仕様を両側でそろえる大切さを実感した部分です。
+      <div class="note-title">🔧 実際にハマったところ:最初はここもBluetoothだった</div>
+      ガチャ側も、はじめはBLEでつないでいました。ところが<strong>電波が弱い場所だと接続がぷつぷつ切れて</strong>、いちばん大事な<strong>「カプセルが出ました」という通知を取りこぼす</strong>ことがありました。こうなるとPCは「まだ出ていない」と思い込んだまま止まってしまい、<strong>次の人がゲームを始められなくなります</strong>。<br><br>
+      そこでガチャ側だけ<strong>WiFiに乗り換えました</strong>。WiFiにしたのは速いからではなく、<strong>「知らせてもらう」から「こちらから何度も聞きに行く」に変えられるから</strong>です。0.4秒ごとに聞いていれば、1回や2回失敗しても次で追いつけます。さらに返事に<strong>排出の通算個数</strong>を入れておいたので、仮に途中を見逃しても「増えている=出た」と分かります。<strong>切れない通信を目指すのではなく、切れても困らない作りにする</strong>——これがこの工作でいちばん勉強になった部分でした。
+    </div>
+
+    <div class="note-box">
+      <div class="note-title">💡 BLEにも同じ落とし穴があった</div>
+      BLEを使っていたころ、<strong>「接続はできているのに解錠しない」</strong>という現象にも悩まされました。原因は、BLEの書き込みに<strong>「相手の受領確認を待つ書き込み」</strong>と<strong>「送りっぱなしの書き込み」</strong>の2種類があり、PC側が送りっぱなしで送っていたのに、ガチャ側は受領確認つきしか受け付けない設定だったこと。<strong>コマンドが黙って捨てられていました</strong>。通信は「送れたつもり」がいちばん怖い、という教訓です。
     </div>
   </section>
 
-  <!-- ============================================================ 9. 排出の確認 ============================================================ -->
+  <!-- ============================================================ 10. 排出の確認 ============================================================ -->
   <section id="detect" style="--sec: var(--c-amber)">
-    <h2><span class="sec-no">09</span>「カプセルが出た」をどう確かめるか</h2>
+    <h2><span class="sec-no">10</span>「カプセルが出た」をどう確かめるか</h2>
     <p>
       解錠して終わりでは困ります。<strong>ちゃんと1個出たことを確認して、すぐ閉め直す</strong>必要があります。そこで排出口に、もう1つ別の赤外線センサーを付けています。
     </p>
@@ -514,9 +627,9 @@
     </div>
   </section>
 
-  <!-- ============================================================ 10. 状態管理 ============================================================ -->
+  <!-- ============================================================ 11. 状態管理 ============================================================ -->
   <section id="state" style="--sec: var(--c-green)">
-    <h2><span class="sec-no">10</span>いちばん面白いところ:「いまどの状態か」を管理する</h2>
+    <h2><span class="sec-no">11</span>いちばん面白いところ:「いまどの状態か」を管理する</h2>
     <p>
       部品がそろっても、それだけでは安心して人に遊んでもらえません。たとえばこんなことが起こります。
     </p>
@@ -573,7 +686,7 @@
 
     <h3>PCも同じ状態を見張っている</h3>
     <p>
-      さらにPC側も、ガチャから届く通知(<code>UNLOCKED</code> → <code>DISPENSED</code> → <code>LOCKED</code>)を追いかけて、<strong>「閉まった」が確認できるまで次の人のゲームを始めさせません</strong>。ゲーム画面には進行状況が段階表示され、閉まったら「次の人どうぞ」に切り替わります。
+      さらにPC側も、ガチャ機に<code>/status</code>を<strong>0.4秒ごとに聞きに行って</strong>、状態の変化(<code>UNLOCKED</code> → <code>DISPENSED</code> → <code>LOCKED</code>)を追いかけています。そして<strong>「閉まった」が確認できるまで次の人のゲームを始めさせません</strong>。ゲーム画面には進行状況が段階表示され、閉まったら「次の人どうぞ」に切り替わります。「見張っている」という言葉のとおり、PCは何度も同じことを聞き続けているわけです。
     </p>
 
     <div class="note-box">
@@ -582,9 +695,9 @@
     </div>
   </section>
 
-  <!-- ============================================================ 11. 無線の違い ============================================================ -->
+  <!-- ============================================================ 12. 無線の違い ============================================================ -->
   <section id="wireless" style="--sec: var(--c-sky)">
-    <h2><span class="sec-no">11</span>赤外線・WiFi・Bluetooth、無線の使い分け</h2>
+    <h2><span class="sec-no">12</span>赤外線・Bluetooth・WiFi、無線の使い分け</h2>
     <p>
       この工作の中には<strong>3種類の無線</strong>が登場しました。それぞれ得意・不得意が違うので、使い分けを知っておくと電子工作の見通しが良くなります。
     </p>
@@ -593,26 +706,40 @@
       <table>
         <thead><tr><th>方式</th><th>たとえるなら</th><th>特徴</th><th>この工作での役目</th></tr></thead>
         <tbody>
-          <tr><td>赤外線(IR)</td><td>光で送る手紙</td><td>まっすぐ見えている範囲だけ。準備は不要</td><td>リモコン → ESP32①</td></tr>
-          <tr><td>WiFi</td><td>郵便局経由の宅配</td><td>ルーターの電波が届く範囲。SSID/パスワードの設定が必要</td><td>最初はこれでPCに送信していた</td></tr>
-          <tr><td>Bluetooth(BLE)</td><td>トランシーバーで直接話す</td><td>数m〜数十m、機器同士が直接。ペアリング操作なしで自動接続</td><td>ESP32① ⇄ PC ⇄ ESP32②</td></tr>
+          <tr><td>赤外線(IR)</td><td>光で送る手紙</td><td>まっすぐ見えている範囲だけ。準備も設定も不要</td><td>リモコン → ESP32①</td></tr>
+          <tr><td>Bluetooth(BLE)</td><td>トランシーバーで直接話す</td><td>機器同士が直接つながる。設定不要で、押した瞬間に届く</td><td>ESP32① → PC</td></tr>
+          <tr><td>WiFi</td><td>郵便局経由の宅配</td><td>ルーター経由。設定は要るが、何度でも送り直せて確実</td><td>PC ⇄ ESP32②</td></tr>
         </tbody>
       </table>
     </div>
 
+    <h3>一度WiFiをやめて、また片方だけWiFiに戻した</h3>
     <p>
-      最初はWiFi経由でPCにボタン情報を送る構成でしたが、専用のWiFiルーターを用意する手間が発生していました。作り直す中で「WiFiを使わなくても、BLEで直接PCに送れる」と分かり、切り替えたところ<strong>ルーターも設定も不要</strong>になりました。今は<strong>PCが2台のマイコンと同時にBLE接続している</strong>構成です。
+      ここは行ったり来たりしました。<strong>最初はリモコン側もWiFi</strong>で、ボタン情報をPCに送っていました。でも専用のWiFiルーターを用意する手間があったので、<strong>BLEに切り替えて「ルーターも設定も不要」にしました</strong>。ここまでは順調でした。
     </p>
+    <p>
+      ところがガチャ側までBLEにしたら、今度は<strong>電波が弱いと接続が切れて「カプセルが出た」を取りこぼす</strong>問題が出ました(前の章の話です)。そこで<strong>ガチャ側だけWiFiに戻しました</strong>。結果、いまはこうなっています。
+    </p>
+    <ul>
+      <li><strong>リモコン → PC は BLE</strong> — 反応の速さが命。ボタンを押した瞬間に届いてほしいし、机の上でPCのすぐ近くなので電波も安定している</li>
+      <li><strong>PC → ガチャ は WiFi</strong> — 少し離れた場所に置くうえ、確実さが命。何度も聞き直せるほうが強い</li>
+    </ul>
+
+    <div class="note-box">
+      <div class="note-title">💡 「どちらも使える」こと自体が強み</div>
+      ESP32は<strong>WiFiとBluetoothを両方とも内蔵しています</strong>。だから「この工作はBluetoothでやる」と決め打ちする必要がなく、<strong>区間ごとに向いているほうを選べます</strong>。今回のように、近くて速さが要る区間はBLE、離れていて確実さが要る区間はWiFi、という組み合わせが1つの装置の中で成立します。<br><br>
+      会場にWiFiルーターがあることも、最初は「用意しないといけない手間」に見えていました。でも実際には<strong>「いざとなればWiFiという逃げ道が使える」という保険</strong>でもありました。片方がうまくいかないときにもう片方へ移れる——<strong>使える選択肢を2つ持っている状態</strong>が、そのまま作りやすさになっています。
+    </div>
 
     <div class="note-box">
       <div class="note-title">🔧 実際にハマったところ:電波は「置き場所」で激変する</div>
-      ガチャ側のマイコンが、あるときは全く見つからず、あるときは問題なくつながる、という現象に悩まされました。調べていくと原因は<strong>置き場所</strong>でした。電波の強さを測ってみると、置き場所によって<strong>100倍以上の差</strong>が出ていました。無線は「つながるか / つながらないか」の白黒ではなく<strong>強さの連続した値</strong>で、弱いと「見つかるけど接続が続かない」という中間状態が起きます。最後は、電波の強さと接続の切れた回数を画面に表示して、置き場所を判断できるようにしました。
+      ガチャ側のマイコンが、あるときは全く見つからず、あるときは問題なくつながる、という現象に悩まされました。調べていくと原因は<strong>置き場所</strong>でした。電波の強さを測ってみると、置き場所によって<strong>100倍以上の差</strong>が出ていました。無線は「つながるか / つながらないか」の白黒ではなく<strong>強さの連続した値</strong>で、弱いと「見つかるけど接続が続かない」という中間状態が起きます。これはBLEでもWiFiでも同じです。最後は、さきほどの<code>/status</code>の返事に<strong>電波の強さ(rssi)</strong>を入れて運営用の画面に表示し、<strong>置き場所が悪ければその場で気づける</strong>ようにしました。
     </div>
   </section>
 
-  <!-- ============================================================ 12. アンケート ============================================================ -->
+  <!-- ============================================================ 13. アンケート ============================================================ -->
   <section id="survey" style="--sec: var(--c-gold)">
-    <h2><span class="sec-no">12</span>アンケート</h2>
+    <h2><span class="sec-no">13</span>アンケート</h2>
     <p>
       この展示はどうでしたか?今後の展示づくりの参考にするので、1分ほどご協力ください。
     </p>
@@ -634,9 +761,9 @@
 
   <div class="bonus-divider">おまけ</div>
 
-  <!-- ============================================================ 13. 他のセンサー紹介ギャラリー ============================================================ -->
+  <!-- ============================================================ 14. 他のセンサー紹介ギャラリー ============================================================ -->
   <section id="gallery" style="--sec: var(--c-coral)">
-    <h2><span class="sec-no">13</span>他にもこんなセンサーがある</h2>
+    <h2><span class="sec-no">14</span>他にもこんなセンサーがある</h2>
     <p>
       今回使った赤外線センサーは、電子工作の世界にある無数のセンサーのうちの2種類でした。スターターキットに入っている他のパーツも見てみましょう。<strong>「何を感じ取るか」「どこで使われているか」</strong>に注目すると、身の回りの家電やスマホの仕組みが見えてきます。
     </p>
@@ -760,9 +887,9 @@
     </div>
   </section>
 
-  <!-- ============================================================ 14. まとめ ============================================================ -->
+  <!-- ============================================================ 15. まとめ ============================================================ -->
   <section id="next" style="--sec: var(--accent)">
-    <h2><span class="sec-no">14</span>300円のセンサーから、ここまで来た</h2>
+    <h2><span class="sec-no">15</span>300円のセンサーから、ここまで来た</h2>
     <p>
       最初にあったのは、100円ショップの300円のライトだけでした。そこから順番にたどると、こんな技術が出てきました。
     </p>
@@ -770,7 +897,7 @@
       <li><strong>センサー</strong> — 赤外線を受け取る / 自分で出して跳ね返りを見る、2種類の使い方</li>
       <li><strong>電子回路</strong> — 電源・GND・信号の3本をつなぐ、という共通のパターン</li>
       <li><strong>プログラミング</strong> — 受け取ったコードで処理を分ける、状態を管理する</li>
-      <li><strong>無線通信</strong> — 赤外線・WiFi・BLEの使い分け、届く / 届かないの現実</li>
+      <li><strong>無線通信</strong> — 赤外線・BLE・WiFiを区間ごとに選ぶ、届く / 届かないの現実</li>
       <li><strong>モーター制御</strong> — パルスの長さで角度を伝える、力のかかり方を考える</li>
     </ul>
     <p>

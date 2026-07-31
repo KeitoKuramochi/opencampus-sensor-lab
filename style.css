@@ -265,6 +265,29 @@ figure.photo-todo .todo-frame {
 
 figure.photo-todo .todo-icon { font-size: 1.6rem; opacity: 0.7; }
 
+figure.video-todo .todo-frame { min-height: 210px; }
+
+/* ---------- 動画 ---------- */
+
+.video-wrap { margin: 24px 0; }
+
+.video-wrap video {
+  width: 100%;
+  max-height: 480px;
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #000;
+  object-fit: contain;
+}
+
+.video-note {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-top: 8px;
+  line-height: 1.7;
+}
+
 /* ---------- 注釈つき写真(分解写真にラベルを重ねる) ---------- */
 
 figure.annotated {
