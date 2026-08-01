@@ -56,11 +56,8 @@
 <main>
 
   <!-- ============================================================ 1. デモ動画 ============================================================
-       ★動画の差し込み方★
-       1. 撮った動画を videos/demo.mp4 として置く(スマホ撮影なら .mov を .mp4 に変換しておくと確実)
-       2. 下の <figure class="photo-todo video-todo"> のブロックを削除する
-       3. その下のコメントアウトしてある <div class="video-wrap"> のコメント記号を外す
-       サムネイル画像を出したい場合は images/demo-poster.jpg を置いて poster 属性を足す
+       videos/demo.mp4 は元の4K/HEVC(317MB)を 1280x720 H.264 に変換したもの(約10MB)。
+       差し替えるときは videos/README.md の変換コマンドを使う。
   ============================================================ -->
   <section id="demo" style="--sec: var(--c-coral)">
     <h2><span class="sec-no">01</span>まずは、動いているところを見てください</h2>
@@ -68,21 +65,12 @@
       100円ショップのリモコンでリズムゲームを遊んで、自分で決めた目標スコアに届くと——横に置いてあるガチャガチャの<strong>ロックが自動で開いて、実際にカプセルが出てきます</strong>。まずはその様子をどうぞ。
     </p>
 
-    <figure class="photo-todo video-todo">
-      <div class="todo-frame">
-        <span class="todo-icon">🎬</span>
-        <span>デモ動画(追加予定)<br><code>videos/demo.mp4</code> を置くと、ここで再生できるようになります</span>
-      </div>
-    </figure>
-
-    <!-- 動画を置いたら、上の figure を消してこのコメントを外す
     <div class="video-wrap">
       <video controls playsinline preload="metadata" src="videos/demo.mp4">
         お使いのブラウザは動画再生に対応していません。
       </video>
-      <p class="video-note">▶ リモコンでリズムゲームを遊ぶ → 目標スコアに到達 → ガチャのロックが解除 → 実際に回してカプセルが出てくるまで(音が出ます)</p>
+      <p class="video-note">▶ 目標スコアを選んでリズムゲームをプレイ → 151点で目標(100点)を達成 → ガチャの画面が「かいじょ!まわしてね」に変わる → ハンドルを回してカプセルが出てくる → 自動で「ロック中」に戻る(約50秒・音が出ます)</p>
     </div>
-    -->
 
     <p>
       見た目はただの「ゲームに勝ったらガチャが開く」ですが、この裏では<strong>赤外線・Bluetooth・WiFiという3種類の無線</strong>と、<strong>マイコン2台とPC1台</strong>が順番に仕事をしています。ここから先は、それが<strong>どういう部品と信号でできているのか</strong>を最初からほどいていきます。
@@ -425,11 +413,11 @@
       サーボの軸に付けた<strong>爪</strong>が、回転盤の歯にはまることでロックしています。ここで大事なのは、<strong>無理やり回そうとした力がサーボのギアに直接かからないようにすること</strong>です。力が爪 → 土台 → 本体へと流れるように設計しておかないと、小さなサーボのギアはすぐ壊れてしまいます。「動かす部品を、壊れないように配置する」のは機械設計側の腕の見せどころです。
     </div>
 
-    <figure class="photo photo-todo">
-      <div class="todo-frame">
-        <span class="todo-icon">📷</span>
-        <span>ガチャ本体に組み込んだサーボとロック機構の写真(追加予定)</span>
-      </div>
+    <figure class="photo">
+      <a class="zoom" href="images/gacha-servo-lock.jpg" target="_blank" rel="noopener">
+        <img src="images/gacha-servo-lock.jpg" alt="ガチャ本体の中。オレンジ色の回転盤のギザギザした歯と、その脇に固定された青いSG90サーボモーター。サーボの軸には白い爪(ホーン)が付いている" loading="lazy">
+      </a>
+      <figcaption>実際に組み込んだところ。青いのがサーボ(SG90)で、軸に付いた白い爪が、オレンジ色の回転盤の歯に引っかかることでロックしている。この爪が動くだけで「回せる / 回せない」が切り替わる</figcaption>
     </figure>
   </section>
 
@@ -440,12 +428,20 @@
       PCは2台のマイコンと同時につながっています。ところが<strong>この2本は別々の無線を使っています</strong>。リモコン側とは<strong>Bluetooth(BLE)</strong>、ガチャ側とは<strong>WiFi</strong>です。同じESP32なのになぜ揃えないのか——理由は、この章の最後のハマった話にあります。
     </p>
 
-    <figure class="photo photo-todo">
-      <div class="todo-frame">
-        <span class="todo-icon">📷</span>
-        <span>ガチャ本体に載せた2台目のESP32(画面付き)の写真(追加予定)</span>
-      </div>
-    </figure>
+    <div class="photo-grid">
+      <figure class="photo">
+        <a class="zoom" href="images/gacha-display.jpg" target="_blank" rel="noopener">
+          <img src="images/gacha-display.jpg" alt="ガチャ本体の正面に埋め込まれたESP32の小さな液晶。リモコン型のマスコットと鍵のイラストとともに「ロック中 高得点を目指そう!」と表示されている" loading="lazy">
+        </a>
+        <figcaption>正面。ESP32に付いている1.9インチの液晶で、いまの状態を来場者に見せている(これは「ロック中」の画面)</figcaption>
+      </figure>
+      <figure class="photo">
+        <a class="zoom" href="images/gacha-esp32.jpg" target="_blank" rel="noopener">
+          <img src="images/gacha-esp32.jpg" alt="ガチャ本体の内側から見たESP32ボードの裏側。青と赤のLEDが点灯し、オレンジ・白・黄・黒・赤のジャンパーワイヤーが何本も繋がっている" loading="lazy">
+        </a>
+        <figcaption>裏側。同じ基板の反対面で、ここからサーボと排出センサーへ線が伸びている。青く光っているのは電源のLED</figcaption>
+      </figure>
+    </div>
 
     <h3>① リモコン側 → PC:BLEは「引き出し」でやりとりする</h3>
     <p>
@@ -577,11 +573,11 @@
       解錠して終わりでは困ります。<strong>ちゃんと1個出たことを確認して、すぐ閉め直す</strong>必要があります。そこで排出口に、もう1つ別の赤外線センサーを付けています。
     </p>
 
-    <figure class="photo photo-todo">
-      <div class="todo-frame">
-        <span class="todo-icon">📷</span>
-        <span>排出口に取り付けた反射型赤外線センサーの写真(追加予定)</span>
-      </div>
+    <figure class="photo">
+      <a class="zoom" href="images/gacha-ir-sensor.jpg" target="_blank" rel="noopener">
+        <img src="images/gacha-ir-sensor.jpg" alt="オレンジ色の排出口の穴のすぐ横に取り付けられた、青い基板の反射型赤外線センサー。黒い赤外線LEDと透明の受光部が並び、中央に青い感度調整用の可変抵抗が付いている" loading="lazy">
+      </a>
+      <figcaption>排出口(左の穴)のすぐ横に取り付けた反射型IRセンサー。黒い部品が赤外線を出すLED、その隣の透明な部品が受ける側。中央の青い四角が、次に出てくる「感度調整のつまみ」</figcaption>
     </figure>
 
     <h3>100円ライトのセンサーとは、実は別のタイプ</h3>

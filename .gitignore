@@ -1,1 +1,7 @@
 .DS_Store
+
+# 撮影の元データ(4K動画・高解像度写真)。Web用に変換したものだけをコミットする
+images/IMG_*
+videos/IMG_*
+*.MOV
+*.mov
